@@ -6,6 +6,9 @@ const char *WIFI_SSID = "IoTGame";
 const char *WIFI_PASSWORD = "testpassword";
 bool master = false;
 int RTS;
+int playerId = 0;
+IPAddress localServer(192, 168, 4, 1);
+int localResult;
 
 OLED_CLASS_OBJ display(OLED_ADDRESS, OLED_SDA, OLED_SCL);
 
@@ -36,7 +39,6 @@ void manageConnection()
   {
     delay(2000);
     status = WiFi.status();
-    Serial.println(status);
   }
   if (status == WL_NO_SSID_AVAIL)
   {
@@ -45,15 +47,21 @@ void manageConnection()
     Serial.print("IP address: ");
     Serial.println(WiFi.softAPIP());
     master = true;
-    drawToScreen("Master");
+    drawToScreen("Player 1");
   }
   else
   {
+    String IP = WiFi.localIP().toString();
+    playerId = IP.charAt(IP.length() - 1) - '0';
+    char text[9];
     Serial.print("Connected : ");
     Serial.println(WiFi.SSID());
+    Serial.print("Player ID: ");
+    Serial.println(playerId);
     Serial.print("IP:");
-    Serial.println(WiFi.localIP().toString());
-    drawToScreen("Slave");
+    Serial.println(IP);
+    snprintf(text, 9, "Player %i", playerId);
+    drawToScreen(text);
   }
 }
 
