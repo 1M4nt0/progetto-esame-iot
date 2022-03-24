@@ -1,14 +1,31 @@
 #include "board_conf.h"
 #include "WiFi.h"
 #include "SPI.h"
+#include "WiFiUdp.h"
+
+/* CODICI
+  A -> accenditi
+  T,XXX -> tempo
+  V -> vincitore
+
+*/
+
+#define button_pin 14
+#define GAME_PORT 2022
+
+IPAddress GameServerAddress(192, 168, 4, 1);
 
 const char *WIFI_SSID = "IoTGame";
 const char *WIFI_PASSWORD = "testpassword";
 bool master = false;
 int RTS;
 int playerId = 0;
-IPAddress localServer(192, 168, 4, 1);
 int localResult;
+
+char packetBuffer[255]; // buffer to hold incoming packet
+uint8_t ReplyBuffer[];  // a string to send back
+
+WiFiUDP Udp;
 
 OLED_CLASS_OBJ display(OLED_ADDRESS, OLED_SDA, OLED_SCL);
 
@@ -42,6 +59,7 @@ void manageConnection()
   }
   if (status == WL_NO_SSID_AVAIL)
   {
+    WiFi.mode(WIFI_MODE_AP);
     WiFi.softAP(WIFI_SSID, WIFI_PASSWORD, 7, 0);
     Serial.println();
     Serial.print("IP address: ");
@@ -56,13 +74,40 @@ void manageConnection()
     char text[9];
     Serial.print("Connected : ");
     Serial.println(WiFi.SSID());
-    Serial.print("Player ID: ");
+    Serial.print("Player ");
     Serial.println(playerId);
-    Serial.print("IP:");
+    Serial.print("IP : ");
     Serial.println(IP);
+    master = false;
     snprintf(text, 9, "Player %i", playerId);
     drawToScreen(text);
   }
+}
+
+void send_accendi()
+{
+  memcpy(ReplyBuffer, "A", 1);
+  Udp.beginPacket(IPAddress(192, 168, 4, 255), GAME_PORT);
+  Udp.write(ReplyBuffer, 1);
+  Udp.endPacket();
+}
+
+void send_tempo(int millis)
+{
+  IPAddress to = IPAddress(192, 168, 4, 1);
+  String message = "T" + String(millis);
+  memcpy(ReplyBuffer, message, 1);
+  Udp.beginPacket(to, GAME_PORT);
+  Udp.write(ReplyBuffer, 1);
+  Udp.endPacket();
+}
+
+void send_vincitore(IPAddress vincitore)
+{
+  memcpy(ReplyBuffer, "V", 1);
+  Udp.beginPacket(vincitore, GAME_PORT);
+  Udp.write(ReplyBuffer, 1);
+  Udp.endPacket();
 }
 
 void setup()
@@ -71,13 +116,49 @@ void setup()
   Serial.begin(9600);
   while (!Serial)
     ;
-  WiFi.mode(WIFI_MODE_APSTA);
+  pinMode(button_pin, INPUT);
   initDisplay();
   drawToScreen("Avvio...");
   delay(1000);
   manageConnection();
+  Udp.begin(GAME_PORT);
 }
 
 void loop()
 {
+  if (WiFi.status() != WL_CONNECTED && master != true)
+  {
+    Serial.println();
+    Serial.println("Disconnesso");
+    manageConnection();
+  }
+  else
+  {
+    if (master)
+    {
+      Udp.beginPacket(to, GAME_PORT);
+      Udp.write(ReplyBuffer, 4);
+      Udp.endPacket();
+      delay(5000);
+    }
+    else
+    {
+      int packetSize = Udp.parsePacket();
+      if (packetSize)
+      {
+        Serial.print("Received packet of size ");
+        Serial.println(packetSize);
+        Serial.print("From ");
+        IPAddress remoteIp = Udp.remoteIP();
+        Serial.print(remoteIp);
+        Serial.print(", port ");
+        Serial.println(Udp.remotePort());
+        while (Udp.available())
+        {
+          Serial.print((char)Udp.read());
+        }
+        Serial.println("OK!");
+      }
+    }
+  }
 }
