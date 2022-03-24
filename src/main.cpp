@@ -95,7 +95,7 @@ void send_accendi()
 void send_tempo(int millis)
 {
   IPAddress to = IPAddress(192, 168, 4, 1);
-  String message = "T" + String(millis);
+  String message = str "T" + String(millis);
   memcpy(ReplyBuffer, message, 1);
   Udp.beginPacket(to, GAME_PORT);
   Udp.write(ReplyBuffer, 1);
