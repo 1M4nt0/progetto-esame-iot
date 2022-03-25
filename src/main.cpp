@@ -2,19 +2,24 @@
 #include "WiFi.h"
 #include "SPI.h"
 #include "WiFiUdp.h"
+#include "screen_utils.h"
 
-#define button_pin 14
-#define led_pin 12
+#define BUTTON_PIN 14
+#define LED_PIN 12
 #define GAME_PORT 2022
 
-IPAddress GameServerAddress(192, 168, 4, 1);
+/*
+  00000001 = 1  ACCENDI
+  00000010 = 2  TEMPO
+  00000011 = 3  VINCITORE
+*/
 
+IPAddress GameHost = IPAddress(192, 168, 4, 1);
 const char *WIFI_SSID = "IoTGame";
 const char *WIFI_PASSWORD = "testpassword";
 bool master = false;
-int RTS;
+
 int playerId = 0;
-int localResult;
 
 int matchStart = 0;
 int match_vinti = 0;
@@ -27,27 +32,9 @@ struct
   int time;
 } winner;
 
-char packetBuffer[255];  // buffer to hold incoming packet
-uint8_t ReplyBuffer[10]; // a string to send back
-
+byte packetBuffer[3]; // buffer to hold incoming packet
+byte replyBuffer[3];  // buffer to hold incoming packet
 WiFiUDP Udp;
-
-OLED_CLASS_OBJ display(OLED_ADDRESS, OLED_SDA, OLED_SCL);
-
-void initDisplay()
-{
-  display.init();
-  display.flipScreenVertically();
-  display.setFont(ArialMT_Plain_16);
-}
-
-void drawToScreen(String text)
-{
-  display.clear();
-  display.setTextAlignment(TEXT_ALIGN_CENTER);
-  display.drawString(display.getWidth() / 2, display.getHeight() / 2, text);
-  display.display();
-}
 
 void manageConnection()
 {
@@ -91,51 +78,51 @@ void manageConnection()
 
 void send_accendi()
 {
-  memcpy(ReplyBuffer, "A", 1);
+  byte code = 1;
   Udp.beginPacket(IPAddress(192, 168, 4, 255), GAME_PORT);
-  Udp.write(ReplyBuffer, 1);
+  Udp.write(&code, 1);
   Udp.endPacket();
 }
 
-void send_tempo(int millis)
+void send_tempo(short millis)
 {
-  IPAddress to = IPAddress(192, 168, 4, 1);
-  String message = "T" + String(millis);
-  memcpy(ReplyBuffer, &message, message.length());
-  Udp.beginPacket(to, GAME_PORT);
-  Udp.write(ReplyBuffer, message.length());
+  byte code = 2;
+  memcpy(replyBuffer, &code, 1);
+  memcpy(replyBuffer + 1, &millis, 2);
+  Udp.beginPacket(GameHost, GAME_PORT);
+  Udp.write(replyBuffer, 3);
   Udp.endPacket();
 }
 
 void send_vincitore(IPAddress vincitore)
 {
-  memcpy(ReplyBuffer, "V", 1);
+  byte code = 3;
   Udp.beginPacket(vincitore, GAME_PORT);
-  Udp.write(ReplyBuffer, 1);
+  Udp.write(&code, 1);
   Udp.endPacket();
 }
 
-void manage_messages(String message, IPAddress from)
+void manage_messages(byte payload[], IPAddress from)
 {
-  char header = message[0];
-  if (header == 'A')
+  if (payload[0] == 1)
   {
     arrived_accendi = millis();
     acceso = true;
   }
-  else if (header == 'T')
+  else if (payload[0] == 2)
   {
-    int new_time = message.substring(1).toInt();
-    if (winner.time > new_time)
+    short newTime;
+    memcpy(&newTime, payload + 1, 2);
+    if (winner.time > newTime)
     {
-      winner.time = new_time;
+      winner.time = newTime;
       winner.ip = from;
     }
   }
-  else if (header == 'V')
+  else if (payload[0] == 3)
   {
     match_vinti += 1;
-    Serial.printf("Partite vinte: %i", match_vinti);
+    Serial.printf("Partite vinte: %i\n", match_vinti);
   }
 }
 
@@ -144,12 +131,11 @@ void manage_packets()
   int packetSize = Udp.parsePacket();
   if (packetSize)
   {
-    String message = "";
-    while (Udp.available())
+    if (Udp.available())
     {
-      message += (char)Udp.read();
+      Udp.read(packetBuffer, 3);
     }
-    manage_messages(message, Udp.remoteIP());
+    manage_messages(packetBuffer, Udp.remoteIP());
   }
 }
 
@@ -159,9 +145,9 @@ void setup()
   Serial.begin(9600);
   while (!Serial)
     ;
-  pinMode(button_pin, INPUT);
-  pinMode(led_pin, OUTPUT);
-  digitalWrite(led_pin, LOW);
+  pinMode(BUTTON_PIN, INPUT);
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
   initDisplay();
   drawToScreen("Avvio...");
   delay(1000);
@@ -184,7 +170,7 @@ void loop()
     if (master)
     {
       // MASTER
-      if (millis() > matchStart + 10000)
+      if (millis() > matchStart + 5000)
       {
         send_vincitore(winner.ip);
         Serial.print("Vincitore: ");
@@ -193,7 +179,7 @@ void loop()
         Serial.print("Tempo: ");
         Serial.print(winner.time);
         Serial.println();
-        delay(random(2000, 5000));
+        delay(random(2000, 10000));
         matchStart = millis();
         winner.time = 10000;
         Serial.println("Match start!");
@@ -211,16 +197,21 @@ void loop()
       manage_packets();
       if (acceso)
       {
-        if (digitalRead(led_pin) == LOW)
+        delay(random(300));
+        send_tempo(millis() - arrived_accendi);
+        acceso = false;
+        /*
+        if (digitalRead(LED_PIN) == LOW)
         {
-          digitalWrite(led_pin, HIGH);
+          digitalWrite(LED_PIN, HIGH);
         }
-        if (digitalRead(button_pin) == LOW)
+        if (digitalRead(BUTTON_PIN) == LOW)
         {
-          digitalWrite(led_pin, LOW);
+          digitalWrite(LED_PIN, LOW);
           send_tempo(millis() - arrived_accendi);
           acceso = false;
         }
+        */
       }
     }
   }
