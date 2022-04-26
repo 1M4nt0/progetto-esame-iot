@@ -4,8 +4,8 @@
 #include "WiFiUdp.h"
 #include "screen_utils.h"
 
-#define BUTTON_PIN 14
-#define LED_PIN 12
+#define BUTTON_PIN 16
+#define LED_PIN 17
 #define GAME_PORT 2022
 
 /*
@@ -38,7 +38,7 @@ WiFiUDP Udp;
 
 void manageConnection()
 {
-  drawToScreen("Connecting...");
+  drawToScreen("Connecting...", 0);
   Serial.println();
   Serial.print("Attempting to connect to open SSID: ");
   Serial.println(WIFI_SSID);
@@ -57,7 +57,7 @@ void manageConnection()
     Serial.print("IP address: ");
     Serial.println(WiFi.softAPIP());
     master = true;
-    drawToScreen("Player 1");
+    drawToScreen("Player 1", 0);
   }
   else
   {
@@ -72,7 +72,7 @@ void manageConnection()
     Serial.println(IP);
     master = false;
     snprintf(text, 9, "Player %i", playerId);
-    drawToScreen(text);
+    drawToScreen(text, 0);
   }
 }
 
@@ -82,6 +82,23 @@ void send_accendi()
   Udp.beginPacket(IPAddress(192, 168, 4, 255), GAME_PORT);
   Udp.write(&code, 1);
   Udp.endPacket();
+}
+
+void manageTime(short newTime, IPAddress from = IPAddress(192, 168, 4, 1))
+{
+  if (winner.time > newTime)
+  {
+    winner.time = newTime;
+    winner.ip = from;
+  }
+}
+
+void beginMatch()
+{
+  arrived_accendi = millis();
+  acceso = true;
+  Serial.println();
+  Serial.println("Match start!");
 }
 
 void send_tempo(short millis)
@@ -102,27 +119,35 @@ void send_vincitore(IPAddress vincitore)
   Udp.endPacket();
 }
 
+void manageWinner()
+{
+  if (winner.ip == WiFi.localIP())
+  {
+    match_vinti += 1;
+    drawToScreen("Player: " + String(playerId), match_vinti);
+  }
+  else
+  {
+    send_vincitore(winner.ip);
+  }
+}
+
 void manage_messages(byte payload[], IPAddress from)
 {
   if (payload[0] == 1)
   {
-    arrived_accendi = millis();
-    acceso = true;
+    beginMatch();
   }
   else if (payload[0] == 2)
   {
     short newTime;
     memcpy(&newTime, payload + 1, 2);
-    if (winner.time > newTime)
-    {
-      winner.time = newTime;
-      winner.ip = from;
-    }
+    manageTime(newTime, from);
   }
   else if (payload[0] == 3)
   {
     match_vinti += 1;
-    Serial.printf("Partite vinte: %i\n", match_vinti);
+    drawToScreen("Player: " + String(playerId), match_vinti);
   }
 }
 
@@ -149,7 +174,7 @@ void setup()
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW);
   initDisplay();
-  drawToScreen("Avvio...");
+  drawToScreen("Avvio...", 0);
   delay(1000);
   manageConnection();
   Udp.begin(GAME_PORT);
@@ -163,6 +188,7 @@ void loop()
   {
     Serial.println();
     Serial.println("Disconnesso");
+    delay(random(1000, 10000));
     manageConnection();
   }
   else
@@ -170,26 +196,39 @@ void loop()
     if (master)
     {
       // MASTER
-      if (millis() > matchStart + 5000)
+      if (millis() > matchStart + 10000)
       {
-        send_vincitore(winner.ip);
         Serial.print("Vincitore: ");
         Serial.print(winner.ip);
         Serial.println();
         Serial.print("Tempo: ");
         Serial.print(winner.time);
         Serial.println();
-        delay(random(2000, 10000));
+        manageWinner();
+        delay(random(2000, 8000));
         matchStart = millis();
         winner.time = 10000;
-        Serial.println("Match start!");
+        beginMatch();
         send_accendi();
       }
       else
       {
         manage_packets();
+        if (acceso)
+        {
+          if (digitalRead(LED_PIN) == LOW)
+          {
+            digitalWrite(LED_PIN, HIGH);
+          }
+          if (digitalRead(BUTTON_PIN) == LOW)
+          {
+            Serial.println("Bottone premuto");
+            digitalWrite(LED_PIN, LOW);
+            send_tempo(millis() - arrived_accendi);
+            acceso = false;
+          }
+        }
       }
-      delay(1000);
     }
     else
     {
@@ -197,10 +236,6 @@ void loop()
       manage_packets();
       if (acceso)
       {
-        delay(random(300));
-        send_tempo(millis() - arrived_accendi);
-        acceso = false;
-        /*
         if (digitalRead(LED_PIN) == LOW)
         {
           digitalWrite(LED_PIN, HIGH);
@@ -211,7 +246,6 @@ void loop()
           send_tempo(millis() - arrived_accendi);
           acceso = false;
         }
-        */
       }
     }
   }
