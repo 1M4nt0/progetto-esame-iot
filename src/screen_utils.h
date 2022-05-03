@@ -2,4 +2,6 @@
 #include "board_conf.h"
 
 void initDisplay();
-void drawToScreen(String text, int points);
+void drawDashboard(int playerid, int points);
+void drawToScreen(String message);
+void drawTwoToScreen(String message1, String message2);

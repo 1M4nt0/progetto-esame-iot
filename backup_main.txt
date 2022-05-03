@@ -1,0 +1,307 @@
+#include "board_conf.h"
+#include "WiFi.h"
+#include "SPI.h"
+#include "WiFiUdp.h"
+#include "screen_utils.h"
+#include <ArduinoOTA.h>
+
+#define BUTTON_PIN 16
+#define LED_PIN 17
+#define GAME_PORT 2022
+#define MATCH_DURATION_MS 5000
+
+/*
+  00000001 = 1  ACCENDI
+  00000010 = 2  TEMPO
+  00000011 = 3  VINCITORE
+  00000100 = 4  SPEGNI
+*/
+
+IPAddress GameHost = IPAddress(192, 168, 4, 1);
+const char *WIFI_SSID = "IoTGame";
+const char *WIFI_PASSWORD = "testpassword";
+bool master = false;
+
+int playerId = 0;
+
+int matchStart = 0;
+int match_vinti = 0;
+int arrived_accendi = 0;
+bool acceso = 0;
+
+struct
+{
+  IPAddress ip;
+  int time;
+} winner;
+
+byte packetBuffer[3]; // buffer to hold incoming packet
+byte replyBuffer[3];  // buffer to hold incoming packet
+WiFiUDP Udp;
+
+void startOTA()
+{
+  // Port defaults to 3232
+  // ArduinoOTA.setPort(3232);
+  // Hostname defaults to esp3232-[MAC]
+  // ArduinoOTA.setHostname("myesp32");
+  // No authentication by default
+  // ArduinoOTA.setPassword("admin");
+  // Password can be set with it's md5 value as well
+  // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
+  // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
+  ArduinoOTA
+      .onStart([]()
+               {
+      String type;
+      if (ArduinoOTA.getCommand() == U_FLASH)
+        type = "sketch";
+      else // U_SPIFFS
+        type = "filesystem";
+      // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+      Serial.println("Start updating " + type); })
+      .onEnd([]()
+             { 
+                drawToScreen("Aggiornato! :)");
+                delay(2000); 
+                drawToScreen("Riavvio...");
+                delay(2000); })
+      .onProgress([](unsigned int progress, unsigned int total)
+                  { drawToScreen("Progresso: " + String(progress / (total / 100)) + "%"); })
+      .onError([](ota_error_t error)
+               { drawToScreen("Errore :("); });
+  ArduinoOTA.begin();
+}
+
+void manageConnection()
+{
+  drawToScreen("Connecting...");
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD, 7);
+  int status = WiFi.status();
+  String IP;
+  while (status != WL_CONNECTED && status != WL_NO_SSID_AVAIL)
+  {
+    delay(2000);
+    status = WiFi.status();
+  }
+  if (status == WL_NO_SSID_AVAIL)
+  {
+    WiFi.mode(WIFI_MODE_AP);
+    WiFi.softAP(WIFI_SSID, WIFI_PASSWORD, 7, 0);
+    master = true;
+    IP = WiFi.softAPIP().toString();
+    drawToScreen("Sei l'host!");
+  }
+  else
+  {
+    master = false;
+    IP = WiFi.localIP().toString();
+    drawToScreen("Connesso!");
+  }
+  delay(2000);
+  startOTA();
+  playerId = IP.charAt(IP.length() - 1) - '0';
+  drawDashboard(playerId, 0);
+}
+
+void send_accendi()
+{
+  byte code = 1;
+  Udp.beginPacket(IPAddress(192, 168, 4, 255), GAME_PORT);
+  Udp.write(&code, 1);
+  Udp.endPacket();
+}
+
+void send_spegni()
+{
+  byte code = 4;
+  Udp.beginPacket(IPAddress(192, 168, 4, 255), GAME_PORT);
+  Udp.write(&code, 1);
+  Udp.endPacket();
+}
+
+void manageTime(short newTime, IPAddress from)
+{
+  if (winner.time > newTime)
+  {
+    winner.time = newTime;
+    winner.ip = from;
+  }
+}
+
+/*
+ * L'Host avvia il match inviando a tutti il segnale di accensione.
+ */
+
+void beginMatch()
+{
+  send_accendi();
+  arrived_accendi = millis();
+  acceso = true;
+}
+
+void endMatch()
+{
+  digitalWrite(LED_PIN, LOW);
+  acceso = false;
+  send_spegni();
+}
+
+/*
+ * Il Client invia all'host il tempo
+ */
+
+void send_tempo(short millis)
+{
+  byte code = 2;
+  memcpy(replyBuffer, &code, 1);
+  memcpy(replyBuffer + 1, &millis, 2);
+  Udp.beginPacket(GameHost, GAME_PORT);
+  Udp.write(replyBuffer, 3);
+  Udp.endPacket();
+}
+
+/*
+ * L'Host invia al vincitore il messaggio che ha vinto
+ */
+
+void send_vincitore(IPAddress vincitore)
+{
+  byte code = 3;
+  String IPString = vincitore.toString();
+  short id = vincitore[4];
+  memcpy(replyBuffer, &code, 1);
+  memcpy(replyBuffer + 1, &id, 2);
+  Udp.beginPacket(vincitore, GAME_PORT);
+  Udp.write(&code, 1);
+  Udp.endPacket();
+}
+
+void manageWinner()
+{
+  if (winner.ip == WiFi.softAPIP())
+  {
+    match_vinti += 1;
+    drawToScreen("Hai vinto!");
+    delay(2000);
+    drawDashboard(playerId, match_vinti);
+  }
+  else if (winner.ip != IPAddress(192, 168, 4, 0))
+  {
+    send_vincitore(winner.ip);
+    drawToScreen("Hai perso!");
+    delay(2000);
+    drawDashboard(playerId, match_vinti);
+  }
+}
+
+void manage_messages(byte payload[], IPAddress from)
+{
+  if (payload[0] == 1) // BEGIN MATCH
+  {
+    beginMatch();
+  }
+  else if (payload[0] == 2) // GESTIONE TEMPO
+  {
+    short newTime;
+    memcpy(&newTime, payload + 1, 2);
+    manageTime(newTime, from);
+  }
+  else if (payload[0] == 3) // VITTORIA
+  {
+    acceso = false;
+    short vincitore;
+    memcpy(&vincitore, payload + 1, 2);
+    if (WiFi.localIP()[4] == vincitore)
+    {
+      match_vinti += 1;
+      drawToScreen("Hai vinto!");
+    }
+    else
+    {
+      drawToScreen("Hai Perso!");
+    }
+    delay(2000);
+    drawDashboard(playerId, match_vinti);
+  }
+  else if (payload[0] == 4) // END MATCH
+  {
+    if (acceso)
+    {
+      digitalWrite(LED_PIN, LOW);
+      acceso = false;
+    }
+  }
+}
+
+void manage_packets()
+{
+  int packetSize = Udp.parsePacket();
+  if (packetSize && Udp.available())
+  {
+    Udp.read(packetBuffer, 3);
+    manage_messages(packetBuffer, Udp.remoteIP());
+  }
+}
+
+void setup()
+{
+  // initialize Serial Monitor
+  Serial.begin(9600);
+  while (!Serial)
+    ;
+  pinMode(BUTTON_PIN, INPUT);
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
+  initDisplay();
+  drawToScreen("Avvio...");
+  delay(1000);
+  manageConnection();
+  Udp.begin(GAME_PORT);
+  winner.time = MATCH_DURATION_MS;
+  winner.ip = IPAddress(192, 168, 4, 0);
+  matchStart = millis();
+}
+
+void loop()
+{
+  ArduinoOTA.handle();
+  if (WiFi.status() != WL_CONNECTED && master != true)
+  {
+    Serial.println();
+    Serial.println("Disconnesso");
+    delay(random(1000, 10000));
+    manageConnection();
+  }
+  else
+  {
+    if (millis() > matchStart + MATCH_DURATION_MS && master)
+    {
+      endMatch();
+      manageWinner();
+      delay(2000);
+      delay(random(2000, 5000));
+      matchStart = millis();
+      winner.time = MATCH_DURATION_MS;
+      winner.ip = IPAddress(192, 168, 4, 0);
+      beginMatch();
+    }
+    else
+    {
+      if (acceso)
+      {
+        if (digitalRead(LED_PIN) == LOW)
+        {
+          digitalWrite(LED_PIN, HIGH);
+        }
+        if (digitalRead(BUTTON_PIN) == LOW)
+        {
+          digitalWrite(LED_PIN, LOW);
+          send_tempo(millis() - arrived_accendi);
+          acceso = false;
+        }
+      }
+      manage_packets();
+    }
+  }
+}

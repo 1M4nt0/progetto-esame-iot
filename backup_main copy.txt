@@ -5,23 +5,25 @@
 #include <ArduinoOTA.h>
 #include <ESPAsyncWebServer.h>
 #include <WebSocketsClient.h>
+#include <WebSocketsServer.h>
 #include <vector>
-#include <string>
+
+using namespace std;
 
 #define C_PLAYER_ID 1
 #define C_BEGIN_MATCH 2
 #define C_END_MATCH 3
 #define C_TIME 4
 #define C_WINNER 5
-#define MATCH_DURATION 7000
-#define MAX_CONNECTED_DEVICES 8
+#define MATCH_DURATION 10000
 
 #define BUTTON_PIN 16
 #define LED_PIN 17
 
+std::map<int, IPAddress> PlayerAddress;
 const char *WIFI_SSID = "IoTGame";
 const char *WIFI_PASSWORD = "testpassword";
-uint8_t packetBuffer[3]; // buffer to hold packets
+uint8_t *packetBuffer; // buffer to hold packets
 
 bool master = false;
 int playerID = 0;
@@ -29,56 +31,47 @@ int matchStartTime = 0;
 int playerPoints = 0;
 bool light = false;
 
-AsyncWebServer server(80);
+// AsyncWebServer server(80);
 WebSocketsClient webSocketClient;
+// WebSocketsServer webSocketServer(80, "/ws");
 AsyncWebSocket ws("/ws");
 
-std::vector<uint8_t> connectedPlayersID;
+vector<int> connectedPlayersID;
 
 struct
 {
-  uint8_t id = 0;
-  unsigned short time = MATCH_DURATION;
+  int id;
+  int time;
 } Winner;
 
-void manageResults(uint8_t winnerID)
+void initWebServer()
 {
-  if (winnerID == playerID)
-  {
-    drawToScreen("Hai vinto!");
-    playerPoints++;
-  }
-  else
-  {
-    drawToScreen("Hai perso!");
-  }
-  delay(2000);
-  drawDashboard(playerID, playerPoints);
 }
 
-void handlePlayerConnected(uint8_t clientID)
+void handlePlayerConnected(int remoteID)
 {
-  connectedPlayersID.push_back(clientID);
-  memset(packetBuffer, (uint8_t)C_PLAYER_ID, sizeof(uint8_t));
-  memcpy(packetBuffer + 1, &clientID, sizeof(uint8_t));
-  ws.binary(clientID, packetBuffer, sizeof(uint8_t) + sizeof(uint8_t));
+  int newPlayerID = remoteID + 1;
+  connectedPlayersID.push_back(newPlayerID);
+  memset(packetBuffer, C_PLAYER_ID, 1);
+  memset(packetBuffer + 1, newPlayerID, 1);
+  // webSocketServer.sendBIN(remoteID, packetBuffer, 2);
 }
 
-void handlePlayerDisconnected(uint8_t clientID)
+void handle_player_disconnected(int id)
 {
-  connectedPlayersID.erase(remove(connectedPlayersID.begin(), connectedPlayersID.end(), clientID), connectedPlayersID.end());
+  connectedPlayersID.erase(remove(connectedPlayersID.begin(), connectedPlayersID.end(), id), connectedPlayersID.end());
 }
 
-void manageWinner(uint8_t id, unsigned short pressingTime)
+void manageWinner(int id, short pressingTime)
 {
   if (Winner.time > pressingTime)
   {
     Winner.time = pressingTime;
-    Winner.id = id;
+    Winner.id = id + 1;
   }
 }
 
-void handleButtonPress(unsigned short pressingTime)
+void handleButtonPress(short pressingTime)
 {
   if (master)
   {
@@ -86,25 +79,24 @@ void handleButtonPress(unsigned short pressingTime)
   }
   else
   {
-    memset(packetBuffer, (uint8_t)C_TIME, sizeof(uint8_t));
-    memcpy(packetBuffer + 1, &pressingTime, sizeof(short));
-    webSocketClient.sendBIN(packetBuffer, sizeof(uint8_t) + sizeof(short));
+    memset(packetBuffer, C_PLAYER_ID, 1);
+    memset(packetBuffer + 1, pressingTime, 2);
+    webSocketClient.sendBIN(packetBuffer, 3);
   }
 }
 
-void handleTimeRecieved(uint8_t clientID, uint8_t *payload)
+void handleTimeRecieved(int id, uint8_t *payload)
 {
-  unsigned short newTime;
+  short newTime;
   memcpy(&newTime, payload + 1, 2);
-  manageWinner(clientID, newTime);
+  manageWinner(id, newTime);
 }
 
 void handlePlayerIDRecieved(uint8_t *payload)
 {
-  uint8_t clientID;
-  memcpy(&clientID, payload + 1, sizeof(uint8_t));
-  playerID = clientID;
-  drawDashboard(playerID, playerPoints);
+  uint8_t id;
+  memcpy(&id, payload + 1, 1);
+  playerID = id;
 }
 
 void handleSendAccendi()
@@ -116,20 +108,6 @@ void handleSendAccendi()
 void handleSendSpegni()
 {
   digitalWrite(LED_PIN, LOW);
-}
-
-void handleResultsRecieved(uint8_t *payload)
-{
-  uint8_t winnerID;
-  memcpy(&winnerID, payload + 1, sizeof(uint8_t));
-  manageResults(winnerID);
-}
-
-void sendResults()
-{
-  memset(&packetBuffer, (uint8_t)C_WINNER, 1);
-  memcpy(&packetBuffer + 1, &Winner.id, sizeof(uint8_t));
-  ws.binaryAll(packetBuffer, sizeof(uint8_t) + sizeof(uint8_t));
 }
 
 void webSocketClientEvent(WStype_t type, uint8_t *payload, size_t length)
@@ -150,16 +128,11 @@ void webSocketClientEvent(WStype_t type, uint8_t *payload, size_t length)
     }
     else if (code == C_BEGIN_MATCH)
     {
-      Serial.println("Ricevuto accendi!");
       handleSendAccendi();
     }
     else if (code == C_END_MATCH)
     {
       handleSendSpegni();
-    }
-    else if (code == C_WINNER)
-    {
-      handleResultsRecieved(payload);
     }
   }
   break;
@@ -173,44 +146,57 @@ void webSocketServerEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, 
   if (type == WS_EVT_CONNECT)
   {
     // client connected
-    handlePlayerConnected(client->id());
-    ws.text(client->id(), String(client->id()));
-    Serial.println("Client connesso");
   }
   else if (type == WS_EVT_DISCONNECT)
   {
-    handlePlayerDisconnected(client->id());
-    Serial.println("Client disconnesso");
+    // client disconnected
   }
   else if (type == WS_EVT_ERROR)
   {
     // error was received from the other end
   }
+  else if (type == WS_EVT_PONG)
+  {
+    // pong message was received (in response to a ping request maybe)
+  }
   else if (type == WS_EVT_DATA)
   {
     // data packet
-    AwsFrameInfo *info = (AwsFrameInfo *)arg;
-    if (info->final && info->index == 0 && info->len == len)
+  }
+}
+/*
+void webSocketServerEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
+{
+  switch (type)
+  {
+  case WStype_DISCONNECTED:
+    break;
+  case WStype_CONNECTED:
+  {
+    handlePlayerConnected(num);
+  }
+  break;
+  case WStype_BIN:
+  {
+    int code = payload[0];
+    if (code == C_TIME)
     {
-      if (info->opcode == WS_BINARY)
-      {
-        uint8_t code = data[0];
-        if (code == C_TIME)
-        {
-          handleTimeRecieved(client->id(), data);
-        }
-      }
+      handleTimeRecieved(num, payload);
     }
+  }
+  break;
+  case WStype_ERROR:
+    break;
   }
 }
 
+
 void initServerSocket()
 {
-  ws.onEvent(webSocketServerEvent);
-  server.addHandler(&ws);
-  server.begin();
+  webSocketServer.begin();
+  webSocketServer.onEvent(webSocketServerEvent);
 }
-
+*/
 void initClientSocket()
 {
   webSocketClient.begin("192.168.4.1", 80, "/ws");
@@ -222,11 +208,17 @@ void startOTA()
 {
   ArduinoOTA
       .onStart([]()
-               { digitalWrite(LED_PIN, LOW); })
+               {
+      String type;
+      if (ArduinoOTA.getCommand() == U_FLASH)
+        type = "sketch";
+      else
+        type = "filesystem";
+      Serial.println("Start updating " + type); })
       .onEnd([]()
-             {
+             { 
                 drawToScreen("Aggiornato! :)");
-                delay(2000);
+                delay(2000); 
                 drawToScreen("Riavvio...");
                 delay(2000); })
       .onProgress([](unsigned int progress, unsigned int total)
@@ -238,7 +230,7 @@ void startOTA()
 
 void manageConnection()
 {
-  drawToScreen("Connessione...");
+  drawToScreen("Connecting...");
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD, 7);
   int status = WiFi.status();
   String IP;
@@ -252,11 +244,10 @@ void manageConnection()
     WiFi.mode(WIFI_MODE_AP);
     WiFi.softAP(WIFI_SSID, WIFI_PASSWORD, 7, 0);
     drawToScreen("Sei l'host!");
-    delay(2000);
     master = true;
     playerID = 0;
+    initWebServer();
     initServerSocket();
-    drawDashboard(playerID, playerPoints);
   }
   else
   {
@@ -267,24 +258,18 @@ void manageConnection()
 
 void beginMultiplayer()
 {
+  drawToScreen("INIZIO");
   Winner.time = MATCH_DURATION;
-  Winner.id = MAX_CONNECTED_DEVICES + 1;
-  memset(&packetBuffer, (uint8_t)C_BEGIN_MATCH, sizeof(uint8_t));
-  ws.binaryAll(packetBuffer, sizeof(uint8_t));
+  memset(&packetBuffer, C_BEGIN_MATCH, 1);
+  webSocketServer.broadcastBIN(packetBuffer, 1);
   matchStartTime = millis();
   digitalWrite(LED_PIN, HIGH);
 }
 
 void endMultiplayer()
 {
-  memset(&packetBuffer, C_END_MATCH, 1);
-  ws.binaryAll(packetBuffer, 1);
+  drawToScreen("FINE");
   digitalWrite(LED_PIN, LOW);
-  if (Winner.id <= MAX_CONNECTED_DEVICES)
-  {
-    sendResults();
-    manageResults(Winner.id);
-  }
 }
 
 void setup()
@@ -304,29 +289,33 @@ void loop()
   ArduinoOTA.handle();
   if (WiFi.status() != WL_CONNECTED && master != true)
   {
-    drawTwoToScreen("Connessione", "persa :(");
+    drawToScreen("Disconnesso :(");
     delay(random(1000, 10000));
     manageConnection();
   }
   else
   {
-    if (!master)
+    if (master) // MASTER
+    {
+      webSocketServer.loop();
+      if (millis() > matchStartTime + 10000)
+      {
+        endMultiplayer();
+        delay(random(2000, 8000));
+        beginMultiplayer();
+      }
+      else if (digitalRead(LED_PIN) == HIGH)
+      {
+        if (digitalRead(BUTTON_PIN) == LOW)
+        {
+          digitalWrite(LED_PIN, LOW);
+          handleButtonPress(millis() - matchStartTime);
+        }
+      }
+    }
+    else // CLIENT
     {
       webSocketClient.loop();
-    }
-    if (master && millis() > matchStartTime + MATCH_DURATION)
-    {
-      endMultiplayer();
-      delay(random(2000, 8000));
-      beginMultiplayer();
-    }
-    if (digitalRead(LED_PIN) == HIGH)
-    {
-      if (digitalRead(BUTTON_PIN) == LOW)
-      {
-        digitalWrite(LED_PIN, LOW);
-        handleButtonPress(millis() - matchStartTime);
-      }
     }
   }
 }
