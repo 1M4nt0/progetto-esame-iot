@@ -7,6 +7,7 @@
 #include <WebSocketsClient.h>
 #include <vector>
 #include <string>
+#include "SPIFFS.h"
 
 #define C_PLAYER_ID 1
 #define C_BEGIN_MATCH 2
@@ -206,6 +207,16 @@ void webSocketServerEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, 
 
 void initServerSocket()
 {
+  if (!SPIFFS.begin(true))
+  {
+    Serial.println("Errore SPIFFS");
+  }
+  server.on("/", HTTP_ANY, [](AsyncWebServerRequest *request)
+            { request->send(SPIFFS, "/index.html"); });
+  server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send(SPIFFS, "/style.css", "text/css"); });
+  server.on("/functions.js", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send(SPIFFS, "/functions.js", "text/js"); });
   ws.onEvent(webSocketServerEvent);
   server.addHandler(&ws);
   server.begin();
