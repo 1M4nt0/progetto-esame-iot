@@ -2,15 +2,32 @@
 <html>
 
 <head>
-    <link href="style.css" rel="stylesheet" type="text/css" />
-    <script src="functions.js"></script>
-    <title>Test</title>
+    <link href="style.css" rel="stylesheet" type="text/css">
+
 </head>
 
 <body>
-    <div>
-        <p>MAndi</p>
+
+
+    <div class="leaderboard">
+        <h1>
+            <svg class="ico-cup">
+                <use xlink:href="#cup"></use>
+            </svg> Classifica
+        </h1>
+        <div id="thead">
+            <p>Nome:</p>
+            <p>Velocità:</p>
+            <p>Vittorie:</p>
+        </div>
+        <table id="leaderboard">
+            <tbody></tbody>
+        </table>
     </div>
+
+
+    <script src="functions.js"></script>
+
 </body>
 
 </html>
