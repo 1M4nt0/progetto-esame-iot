@@ -217,6 +217,8 @@ void initServerSocket()
             { request->send(SPIFFS, "/style.css", "text/css"); });
   server.on("/functions.js", HTTP_GET, [](AsyncWebServerRequest *request)
             { request->send(SPIFFS, "/functions.js", "text/js"); });
+  server.on("/time", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send(SPIFFS, "/functions.js", "text/js"); });
   ws.onEvent(webSocketServerEvent);
   server.addHandler(&ws);
   server.begin();
