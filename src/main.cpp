@@ -8,6 +8,9 @@
 #include <vector>
 #include <string>
 #include "SPIFFS.h"
+#include <map>
+#include "AsyncJson.h"
+#include <ArduinoJson.h>
 
 #define C_PLAYER_ID 1
 #define C_BEGIN_MATCH 2
@@ -35,6 +38,7 @@ WebSocketsClient webSocketClient;
 AsyncWebSocket ws("/ws");
 
 std::vector<uint8_t> connectedPlayersID;
+std::map<int, int> playersPoints;
 
 struct
 {
@@ -53,6 +57,7 @@ void manageResults(uint8_t winnerID)
   {
     drawToScreen("Hai perso!");
   }
+  playersPoints[winnerID] = playersPoints[winnerID] + 1;
   delay(2000);
   drawDashboard(playerID, playerPoints);
 }
@@ -217,8 +222,19 @@ void initServerSocket()
             { request->send(SPIFFS, "/style.css", "text/css"); });
   server.on("/functions.js", HTTP_GET, [](AsyncWebServerRequest *request)
             { request->send(SPIFFS, "/functions.js", "text/js"); });
-  server.on("/time", HTTP_GET, [](AsyncWebServerRequest *request)
-            { request->send(SPIFFS, "/functions.js", "text/js"); });
+  server.on("/points", HTTP_GET, [](AsyncWebServerRequest *request)
+            { 
+              AsyncJsonResponse* response = new AsyncJsonResponse();
+              response->addHeader("Server","ESP Async Web Server");
+              const JsonObject& jsonPoints = response->getRoot();
+              for (uint8_t playerID : connectedPlayersID)
+              {
+                jsonPoints["playerID"] = playerID;
+                jsonPoints["points"] = playersPoints[playerID];
+              }
+              response->setLength();
+              request->send(response); });
+
   ws.onEvent(webSocketServerEvent);
   server.addHandler(&ws);
   server.begin();
@@ -269,6 +285,8 @@ void manageConnection()
     master = true;
     playerID = 0;
     initServerSocket();
+    playersPoints[0] = 0;
+    connectedPlayersID.push_back(0);
     drawDashboard(playerID, playerPoints);
   }
   else

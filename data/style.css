@@ -1,5 +1,3 @@
-
-
 body {
     min-height: 450px;
     height: 100vh;
@@ -8,7 +6,7 @@ body {
     color: #fff;
     font-family: 'Open Sans', sans-serif;
 }
- 
+
 .leaderboard {
     position: absolute;
     top: 50%;
@@ -20,11 +18,13 @@ body {
     border-radius: 10px;
     box-shadow: 0 7px 30px rgba(62, 9, 11, .3);
 }
+
 .leaderboard h1 {
     font-size: 18px;
     color: #e1e1e1;
     padding: 12px 13px 18px;
 }
+
 .leaderboard h1 svg {
     width: 25px;
     height: 26px;
@@ -33,12 +33,15 @@ body {
     margin-right: 6px;
     vertical-align: baseline;
 }
+
 .leaderboard .leaderboard-header {
     width: 100%;
 }
+
 .leaderboard table {
     counter-reset: leaderboard;
 }
+
 .leaderboard table tr {
     position: relative;
     z-index: 1;
@@ -49,6 +52,7 @@ body {
     backface-visibility: hidden;
     transform: translateZ(0) scale(1, 1);
 }
+
 .leaderboard table tr::before {
     content: counter(leaderboard);
     position: absolute;
@@ -63,19 +67,21 @@ body {
     border-radius: 20px;
     text-align: center;
 }
+
 .leaderboard table tr td {
     position: relative;
     z-index: 2;
     top: 0;
     left: 0;
-  
     height: 100%;
     padding: 18px 10px 18px 50px;
     margin: 0;
     background: none;
     color: #fff;
 }
-.leaderboard table tr td::before, .leaderboard table tr td::after {
+
+.leaderboard table tr td::before,
+.leaderboard table tr td::after {
     content: '';
     position: absolute;
     z-index: 1;
@@ -86,12 +92,14 @@ body {
     transition: all 0.1s ease-in-out;
     opacity: 0;
 }
+
 .leaderboard table tr td::after {
     left: auto;
     right: -9px;
     border-left: none;
     border-right: 10px solid transparent;
 }
+
 .leaderboard table tr::after {
     content: '';
     position: absolute;
@@ -105,78 +113,76 @@ body {
     transition: all 0.3s ease-in-out;
     opacity: 0;
 }
+
 .leaderboard table tr:hover {
     z-index: 2;
     overflow: visible;
 }
+
 .leaderboard table tr:hover::after {
     opacity: 1;
     transform: scaleX(1.06) scaleY(1.03);
 }
-.leaderboard table tr:hover mark::before, .leaderboard table tr:hover mark::after {
+
+.leaderboard table tr:hover mark::before,
+.leaderboard table tr:hover mark::after {
     opacity: 1;
     transition: all 0.35s ease-in-out;
 }
-
 
 #thead {
     display: flex;
     flex-wrap: nowrap;
     justify-content: space-around;
 }
-#leaderboard{
+
+#leaderboard {
     width: 100%;
 }
-@media only screen and (max-width: 1000px){
-    
-    #name {
+
+@media only screen and (max-width: 1000px) {
+    .name {
         padding-left: 12.5%;
         width: 42%;
     }
-
-    #speed {
+    .speed {
         padding-left: 6%;
         width: 31.5%;
     }
-
 }
-@media only screen and (min-width: 1001px){
-    
-    #name {
+
+@media only screen and (min-width: 1001px) {
+    .name {
         padding-left: 14%;
         width: 42%;
     }
-
-    #speed {
+    .speed {
         padding-left: 7%;
         width: 31.5%;
     }
-
-    
 }
 
-@media only screen and (min-width: 1581px){
-    
-    #name {
+@media only screen and (min-width: 1581px) {
+    .name {
         padding-left: 14.5%;
         width: 42%;
     }
 }
-@media only screen and (min-width: 1980px){
-    
-    #name {
+
+@media only screen and (min-width: 1980px) {
+    .name {
         padding-left: 14.8%;
         width: 42%;
     }
 }
-@media only screen and (min-width: 1001px) and (max-width:1250px){
-    
-    #name {
+
+@media only screen and (min-width: 1001px) and (max-width:1250px) {
+    .name {
         padding-left: 13%;
         width: 42%;
     }
 }
 
-#win {
-        padding-left: 9.5%;
-    }
+.points {
+    padding-left: 9.5%;
+}
