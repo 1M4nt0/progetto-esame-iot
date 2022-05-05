@@ -11,6 +11,7 @@
 #include <map>
 #include "AsyncJson.h"
 #include <ArduinoJson.h>
+#include <multiplayer.h>
 
 #define C_PLAYER_ID 1
 #define C_BEGIN_MATCH 2
