@@ -57,7 +57,6 @@ void manageResults(uint8_t winnerID)
   {
     drawToScreen("Hai perso!");
   }
-  playersPoints[winnerID] = playersPoints[winnerID] + 1;
   delay(2000);
   drawDashboard(playerID, playerPoints);
 }
@@ -226,11 +225,13 @@ void initServerSocket()
             { 
               AsyncJsonResponse* response = new AsyncJsonResponse();
               response->addHeader("Server","ESP Async Web Server");
-              const JsonObject& jsonPoints = response->getRoot();
+              const JsonObject& jsonData = response->getRoot();
+              int index = 0;
               for (uint8_t playerID : connectedPlayersID)
               {
-                jsonPoints["playerID"] = playerID;
-                jsonPoints["points"] = playersPoints[playerID];
+                jsonData["players"][index]["id"] = playerID;
+                jsonData["players"][index]["points"] = playersPoints[playerID];
+                index++;
               }
               response->setLength();
               request->send(response); });
@@ -313,6 +314,7 @@ void endMultiplayer()
   digitalWrite(LED_PIN, LOW);
   if (Winner.id <= MAX_CONNECTED_DEVICES)
   {
+    playersPoints[Winner.id] = playersPoints[Winner.id] + 1;
     sendResults();
     manageResults(Winner.id);
   }

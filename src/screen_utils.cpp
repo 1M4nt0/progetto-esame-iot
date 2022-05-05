@@ -30,7 +30,7 @@ void drawDashboard(int player, int points)
 {
     display.clear();
     display.setTextAlignment(TEXT_ALIGN_CENTER);
-    display.drawString(display.getWidth() / 2, display.getHeight() / 4, "Gocatore " + String(player));
+    display.drawString(display.getWidth() / 2, display.getHeight() / 4, "Giocatore " + String(player));
     display.drawString(display.getWidth() / 2, (display.getHeight() / 4) * 3, "Punti: " + String(points));
     display.display();
 }
