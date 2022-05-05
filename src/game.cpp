@@ -9,6 +9,38 @@ Game::Game()
     this->isLightOn = false;
 }
 
+void Game::setup(bool isHost)
+{
+    this->isHost = true;
+    (isHost) ? setupServer() : setupClient();
+}
+void Game::loop()
+{
+    if (!this->getIsHost())
+    {
+        _webSocketClient->loop();
+    }
+    this->gameLoop();
+}
+bool Game::getIsHost()
+{
+    return this->isHost;
+}
+bool Game::setIsHost()
+{
+    return this->isHost;
+}
+
+int Game::getPlayerPoints()
+{
+    return playerPoints[this->getDeviceID()];
+}
+
+void Game::incrementPlayerPoints(uint8_t playerID, int increment)
+{
+    playerPoints[playerID] = playerPoints[playerID] + increment;
+}
+
 void Game::setupClient()
 {
     _webSocketClient = new WebSocketsClient();
@@ -18,10 +50,52 @@ void Game::setupClient()
     _webSocketClient->setReconnectInterval(5000);
 }
 
+void Game::resetPoints()
+{
+    this->playerPoints.clear();
+}
+
+void Game::setDeviceResponseTime(uint8_t deviceID, short time)
+{
+    this->deviceResponseTime[deviceID] = time;
+}
+
+void Game::resetResponseTimes()
+{
+    this->deviceResponseTime.clear();
+}
+
 void Game::setupServer()
 {
+    setDeviceID(1);
+    connectedDevicesID.push_back(1);
     _server = new AsyncWebServer(80);
     _ws = new AsyncWebSocket("/ws");
+    if (!SPIFFS.begin(true))
+    {
+        Serial.println("Errore SPIFFS");
+    }
+    _server->on("/", HTTP_ANY, [](AsyncWebServerRequest *request)
+                { request->send(SPIFFS, "/index.html"); });
+    _server->on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request)
+                { request->send(SPIFFS, "/style.css", "text/css"); });
+    _server->on("/functions.js", HTTP_GET, [](AsyncWebServerRequest *request)
+                { request->send(SPIFFS, "/functions.js", "text/js"); });
+    _server->on("/points", HTTP_GET, [&](AsyncWebServerRequest *request)
+                { 
+              AsyncJsonResponse* response = new AsyncJsonResponse();
+              response->addHeader("Server","ESP Async Web Server");
+              const JsonObject& jsonData = response->getRoot();
+              int index = 0;
+              for (uint8_t deviceID : this->connectedDevicesID)
+              {
+                jsonData["players"][index]["id"] = deviceID;
+                jsonData["players"][index]["points"] = this->playerPoints[deviceID];
+                jsonData["players"][index]["time"] = this->deviceResponseTime[deviceID] ;
+                index++;
+              }
+              response->setLength();
+              request->send(response); });
     _ws->onEvent([&](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
                  { webSocketServerEvent(server, client, type, arg, data, len); });
     _server->addHandler(_ws);
@@ -130,19 +204,19 @@ void Game::webSocketClientEvent(WStype_t type, uint8_t *payload, size_t length)
 }
 void Game::webSocketServerEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
 {
+    uint8_t deviceID = client->id() + 1;
     if (type == WS_EVT_CONNECT) // CLIENT CONNECTED
     {
-        connectedDevicesID.push_back(client->id());
-        uint8_t id = client->id() + 1;
-        sendDeviceID(client->id(), id);
-        onNewDeviceConnected(id);
+        connectedDevicesID.push_back(deviceID);
+        sendDeviceID(client->id(), deviceID);
+        onNewDeviceConnected(deviceID);
     }
     else if (type == WS_EVT_DISCONNECT) // CLIENT DISCONNECTED
     {
-        connectedDevicesID.erase(remove(connectedDevicesID.begin(), connectedDevicesID.end(), client->id()), connectedDevicesID.end());
-        onDeviceDisconnected(client->id());
+        connectedDevicesID.erase(remove(connectedDevicesID.begin(), connectedDevicesID.end(), deviceID), connectedDevicesID.end());
+        onDeviceDisconnected(deviceID);
     }
-    else if (type == WS_EVT_DATA) // RECIEVED DATA
+    else if (type == WS_EVT_DATA) // RECEIVED DATA
     {
         AwsFrameInfo *info = (AwsFrameInfo *)arg;
         if (info->final && info->index == 0 && info->len == len && info->opcode == WS_BINARY)
@@ -152,7 +226,7 @@ void Game::webSocketServerEvent(AsyncWebSocket *server, AsyncWebSocketClient *cl
             {
                 unsigned short time;
                 memcpy(&time, data + 1, 2);
-                onTimeRecieved(client->id() + 1, time);
+                onTimeRecieved(deviceID, time);
             }
         }
     }

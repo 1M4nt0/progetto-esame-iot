@@ -5,7 +5,7 @@ function leaderboard(jsonData) {
 
     players = jsonData["players"];
     players.sort(function(a, b) {
-        return Number(a.score) - Number(b.score);
+        return Number(a.points) - Number(b.points);
     });
 
     for (var player of players) {
@@ -15,7 +15,7 @@ function leaderboard(jsonData) {
             'row"><td class="name" >Giocatore ' +
             player.id +
             '</td><td class="speed" >' +
-            player.score +
+            player.time +
             '</td><td class="points" >' +
             player.points +
             "</td></tr>";

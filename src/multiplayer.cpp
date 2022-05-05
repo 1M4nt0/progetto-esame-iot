@@ -9,32 +9,19 @@ void Multiplayer::manageCurrentWinner(uint8_t id, unsigned short pressingTime)
     }
 }
 
-uint8_t Multiplayer::getPlayerID()
-{
-    return this->playerID[this->getDeviceID()];
-}
-int Multiplayer::getPlayerPoints()
-{
-    return playerPoints[this->getPlayerID()];
-}
-void Multiplayer::incrementPlayerPoints(uint8_t playerID, int increment)
-{
-    playerPoints[this->getPlayerID()] = playerPoints[this->getPlayerID()] + increment;
-}
-uint8_t Multiplayer::getPlayerIDFromDevice(uint8_t deviceID)
-{
-    return playerID[deviceID];
-}
 void Multiplayer::startGame()
 {
+    Serial.println("Gioco Iniziato!");
     Winner.time = SHRT_MAX;
     Winner.id = 0;
+    this->resetResponseTimes();
     sendSwitchLightOn();
     matchStartTime = millis();
     digitalWrite(LED_PIN, HIGH);
 }
 void Multiplayer::endGame()
 {
+    Serial.println("Gioco Finito!");
     sendSwitchLightOff();
     digitalWrite(LED_PIN, LOW);
     if (Winner.id != 0)
@@ -63,21 +50,23 @@ void Multiplayer::gameLoop()
 void Multiplayer::onButtonPressed()
 {
     short pressingTime = millis() - matchStartTime;
-    (this->getIsHost()) ? manageCurrentWinner(this->getPlayerID(), pressingTime) : this->sendTime(pressingTime);
+    this->setDeviceResponseTime(this->getDeviceID(), pressingTime);
+    (this->getIsHost()) ? manageCurrentWinner(this->getDeviceID(), pressingTime) : this->sendTime(pressingTime);
 }
 void Multiplayer::checkResults(uint8_t winnerID)
 {
-    if (winnerID == this->getPlayerID())
+    if (winnerID == this->getDeviceID())
     {
         drawToScreen("Hai vinto!");
-        incrementPlayerPoints(this->getPlayerID(), 1);
+        incrementPlayerPoints(this->getDeviceID(), 1);
     }
     else
     {
         drawToScreen("Hai perso!");
+        incrementPlayerPoints(winnerID, 1);
     }
     delay(2000);
-    drawDashboard(this->getPlayerID(), this->getPlayerPoints());
+    drawDashboard(this->getDeviceID(), this->getPlayerPoints());
 }
 void Multiplayer::onWinnerResultsRecieved(uint8_t winnerID)
 {
@@ -85,15 +74,14 @@ void Multiplayer::onWinnerResultsRecieved(uint8_t winnerID)
 }
 void Multiplayer::onDeviceIDRecieved()
 {
-    playerID[this->getDeviceID()] = this->getDeviceID();
-    drawDashboard(this->getPlayerID(), this->getPlayerPoints());
+    drawDashboard(this->getDeviceID(), this->getPlayerPoints());
 }
 void Multiplayer::onNewDeviceConnected(uint8_t deviceID)
 {
-    playerID[deviceID] = deviceID;
     playerPoints[deviceID] = 0;
 }
 void Multiplayer::onTimeRecieved(uint8_t deviceID, short time)
 {
-    manageCurrentWinner(playerID[deviceID], time);
+    this->setDeviceResponseTime(deviceID, time);
+    manageCurrentWinner(deviceID, time);
 }
