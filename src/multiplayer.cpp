@@ -11,7 +11,6 @@ void Multiplayer::manageCurrentWinner(uint8_t id, unsigned short pressingTime)
 
 void Multiplayer::startGame()
 {
-    Serial.println("Gioco Iniziato!");
     Winner.time = SHRT_MAX;
     Winner.id = 0;
     this->resetButtonPressDelay();
@@ -22,7 +21,6 @@ void Multiplayer::startGame()
 
 void Multiplayer::endGame()
 {
-    Serial.println("Gioco Finito!");
     sendSwitchLightOff();
     setLightOff();
     if (Winner.id > 0)
