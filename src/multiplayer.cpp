@@ -14,19 +14,20 @@ void Multiplayer::startGame()
     Serial.println("Gioco Iniziato!");
     Winner.time = SHRT_MAX;
     Winner.id = 0;
-    this->resetResponseTimes();
+    this->resetButtonPressDelay();
     sendSwitchLightOn();
     matchStartTime = millis();
-    digitalWrite(LED_PIN, HIGH);
+    setLightOn();
 }
+
 void Multiplayer::endGame()
 {
     Serial.println("Gioco Finito!");
     sendSwitchLightOff();
-    digitalWrite(LED_PIN, LOW);
-    if (Winner.id != 0)
+    setLightOff();
+    if (Winner.id > 0)
     {
-        sendWinner(Winner.id);
+        sendWinner(Winner.id, true);
         checkResults(Winner.id);
     }
 }
@@ -42,16 +43,15 @@ void Multiplayer::gameLoop()
     {
         if (digitalRead(BUTTON_PIN) == LOW)
         {
-            digitalWrite(LED_PIN, LOW);
             onButtonPressed();
         }
     }
 }
 void Multiplayer::onButtonPressed()
 {
-    short pressingTime = millis() - matchStartTime;
-    this->setDeviceResponseTime(this->getDeviceID(), pressingTime);
-    (this->getIsHost()) ? manageCurrentWinner(this->getDeviceID(), pressingTime) : this->sendTime(pressingTime);
+    long buttonPressDelay = setLightOff();
+    this->setDeviceButtonPressDelay(this->getDeviceID(), buttonPressDelay);
+    (this->getIsHost()) ? manageCurrentWinner(this->getDeviceID(), buttonPressDelay) : this->sendTime(buttonPressDelay);
 }
 void Multiplayer::checkResults(uint8_t winnerID)
 {
@@ -82,6 +82,6 @@ void Multiplayer::onNewDeviceConnected(uint8_t deviceID)
 }
 void Multiplayer::onTimeRecieved(uint8_t deviceID, short time)
 {
-    this->setDeviceResponseTime(deviceID, time);
+    this->setDeviceButtonPressDelay(deviceID, time);
     manageCurrentWinner(deviceID, time);
 }

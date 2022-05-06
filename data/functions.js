@@ -5,7 +5,7 @@ function leaderboard(jsonData) {
 
     players = jsonData["players"];
     players.sort(function(a, b) {
-        return Number(a.points) - Number(b.points);
+        return Number(a.time) - Number(b.time);
     });
 
     for (var player of players) {

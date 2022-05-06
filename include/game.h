@@ -28,8 +28,8 @@ protected:
     virtual void gameLoop() = 0;
     virtual void onTimeRecieved(uint8_t deviceID, short time) = 0;
     virtual void onButtonPressed() = 0;
-    virtual void onSwitchLightOnRecived() = 0;
-    virtual void onSwitchLightOffRecived() = 0;
+    virtual void onSwitchLightOn() = 0;
+    virtual void onSwitchLightOff() = 0;
     virtual void onDeviceIDRecieved() = 0;
     virtual void onWinnerResultsRecieved(uint8_t winnerID) = 0;
     virtual void onNewDeviceConnected(uint8_t deviceID) = 0;
@@ -41,13 +41,16 @@ protected:
     void sendSwitchLightOn(uint8_t deviceID);
     void sendSwitchLightOff();
     void sendSwitchLightOff(uint8_t deviceID);
+    void setLightOn();
+    long setLightOff();
     bool getIsLightOn();
     void setDeviceID(uint8_t deviceID);
     void sendDeviceID(uint32_t clientID, uint8_t deviceID);
     void sendTime(short time);
     void sendWinner(uint8_t winnerID, bool broadcast = true);
     void incrementPlayerPoints(uint8_t playerID, int increment);
-    void setDeviceResponseTime(uint8_t deviceID, short time);
+    void setDeviceButtonPressDelay(uint8_t deviceID, short time);
+    short getDeviceButtonPressDelay(uint8_t deviceID);
 
 public:
     Game();
@@ -58,15 +61,16 @@ public:
     bool setIsHost();
     uint8_t getDeviceID();
     int getPlayerPoints();
-    void resetResponseTimes();
+    void resetButtonPressDelay();
     void resetPoints();
 
 private:
     std::vector<uint8_t> connectedDevicesID;
-    std::map<uint8_t, short> deviceResponseTime;
+    std::map<uint8_t, short> buttonPressDelay;
     uint8_t deviceID;
     bool isLightOn;
     bool isHost;
+    unsigned long lightOnTime;
     void webSocketClientEvent(WStype_t type, uint8_t *payload, size_t length);
     void webSocketServerEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
 };

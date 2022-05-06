@@ -21,8 +21,8 @@ protected:
     void gameLoop() override;
     void onTimeRecieved(uint8_t deviceID, short time) override;
     void onButtonPressed() override;
-    void onSwitchLightOnRecived(){};
-    void onSwitchLightOffRecived(){};
+    void onSwitchLightOn(){};
+    void onSwitchLightOff(){};
     void onDeviceIDRecieved() override;
     void onWinnerResultsRecieved(uint8_t winnerID) override;
     void onNewDeviceConnected(uint8_t deviceID) override;

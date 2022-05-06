@@ -1,4 +1,5 @@
 #include <game.h>
+#include <screen_utils.h>
 
 uint8_t dataBuffer[3]; // buffer to hold packets
 
@@ -7,11 +8,12 @@ Game::Game()
     pinMode(BUTTON_PIN, INPUT);
     pinMode(LED_PIN, OUTPUT);
     this->isLightOn = false;
+    this->lightOnTime = 0;
 }
 
 void Game::setup(bool isHost)
 {
-    this->isHost = true;
+    this->isHost = isHost;
     (isHost) ? setupServer() : setupClient();
 }
 void Game::loop()
@@ -55,14 +57,19 @@ void Game::resetPoints()
     this->playerPoints.clear();
 }
 
-void Game::setDeviceResponseTime(uint8_t deviceID, short time)
+void Game::setDeviceButtonPressDelay(uint8_t deviceID, short time)
 {
-    this->deviceResponseTime[deviceID] = time;
+    this->buttonPressDelay[deviceID] = time;
 }
 
-void Game::resetResponseTimes()
+short Game::getDeviceButtonPressDelay(uint8_t deviceID)
 {
-    this->deviceResponseTime.clear();
+    return this->buttonPressDelay[deviceID];
+}
+
+void Game::resetButtonPressDelay()
+{
+    this->buttonPressDelay.clear();
 }
 
 void Game::setupServer()
@@ -91,7 +98,7 @@ void Game::setupServer()
               {
                 jsonData["players"][index]["id"] = deviceID;
                 jsonData["players"][index]["points"] = this->playerPoints[deviceID];
-                jsonData["players"][index]["time"] = this->deviceResponseTime[deviceID] ;
+                jsonData["players"][index]["time"] = this->buttonPressDelay[deviceID];
                 index++;
               }
               response->setLength();
@@ -122,9 +129,24 @@ void Game::sendSwitchLightOff(uint8_t deviceID)
     memset(&dataBuffer, (uint8_t)C_LIGHTS_OFF, sizeof(uint8_t));
     _ws->binary(deviceID - 1, dataBuffer, sizeof(uint8_t));
 }
+
+void Game::setLightOn()
+{
+    digitalWrite(LED_PIN, HIGH);
+    this->isLightOn = true;
+    this->lightOnTime = millis();
+}
+
+long Game::setLightOff()
+{
+    digitalWrite(LED_PIN, LOW);
+    this->isLightOn = false;
+    return millis() - this->lightOnTime;
+}
+
 bool Game::getIsLightOn()
 {
-    return isLightOn;
+    return this->isLightOn;
 }
 uint8_t Game::getDeviceID()
 {
@@ -148,15 +170,15 @@ void Game::sendTime(short time)
 };
 void Game::sendWinner(uint8_t winnerID, bool broadcast)
 {
-    memset(&dataBuffer, (uint8_t)C_WINNER, 1);
-    memcpy(&dataBuffer + 1, &winnerID, sizeof(uint8_t));
+    memset(dataBuffer, (uint8_t)C_WINNER, 1);
+    memcpy(dataBuffer + 1, &winnerID, sizeof(uint8_t));
     if (broadcast)
     {
         _ws->binaryAll(dataBuffer, sizeof(uint8_t) + sizeof(uint8_t));
     }
     else
     {
-        _ws->binary(winnerID, dataBuffer, sizeof(uint8_t) + sizeof(uint8_t));
+        _ws->binary(winnerID - 1, dataBuffer, sizeof(uint8_t) + sizeof(uint8_t));
     }
 }
 
@@ -180,15 +202,13 @@ void Game::webSocketClientEvent(WStype_t type, uint8_t *payload, size_t length)
         }
         else if (code == C_LIGHTS_ON)
         {
-            digitalWrite(LED_PIN, HIGH);
-            isLightOn = true;
-            onSwitchLightOnRecived();
+            setLightOn();
+            onSwitchLightOn();
         }
         else if (code == C_LIGHTS_OFF)
         {
-            digitalWrite(LED_PIN, LOW);
-            isLightOn = false;
-            onSwitchLightOffRecived();
+            setLightOff();
+            onSwitchLightOff();
         }
         else if (code == C_WINNER)
         {
