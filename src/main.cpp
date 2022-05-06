@@ -43,15 +43,15 @@ void manageConnection()
   {
     WiFi.mode(WIFI_MODE_AP);
     WiFi.softAP(WIFI_SSID, WIFI_PASSWORD, 7, 0);
-    _game->setup(true);
+    _game->init(true);
     drawToScreen("Sei l'host!");
     delay(2000);
-    drawDashboard(_game->getDeviceID(), _game->getPlayerPoints());
+    drawDashboard(_game->getDeviceID(), _game->getPlayerPoints(_game->getDeviceID()));
   }
   else
   {
     drawToScreen("Connesso!");
-    _game->setup(false);
+    _game->init(false);
   }
 }
 

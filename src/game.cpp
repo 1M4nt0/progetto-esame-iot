@@ -11,11 +11,18 @@ Game::Game()
     this->lightOnTime = 0;
 }
 
-void Game::setup(bool isHost)
+void Game::init(bool isHost)
 {
     this->isHost = isHost;
-    (isHost) ? setupServer() : setupClient();
+    this->initCommunication(isHost);
+    this->setup(isHost);
 }
+
+void Game::initCommunication(bool isHost)
+{
+    (isHost) ? initServer() : initClient();
+}
+
 void Game::loop()
 {
     if (!this->getIsHost())
@@ -33,17 +40,32 @@ bool Game::setIsHost()
     return this->isHost;
 }
 
-int Game::getPlayerPoints()
+void Game::resetPlayerPoints(uint8_t playerID)
 {
-    return playerPoints[this->getDeviceID()];
+    this->playersPoints[playerID] = 0;
+}
+
+int Game::getPlayerPoints(uint8_t playerID)
+{
+    return playersPoints[playerID];
+}
+
+std::map<uint8_t, int> Game::getPlayersPoints()
+{
+    return this->getPlayersPoints();
 }
 
 void Game::incrementPlayerPoints(uint8_t playerID, int increment)
 {
-    playerPoints[playerID] = playerPoints[playerID] + increment;
+    playersPoints[playerID] = playersPoints[playerID] + increment;
 }
 
-void Game::setupClient()
+std::vector<uint8_t> Game::getConnectedDevicesID()
+{
+    return this->getConnectedDevicesID();
+}
+
+void Game::initClient()
 {
     _webSocketClient = new WebSocketsClient();
     _webSocketClient->begin("192.168.4.1", 80, "/ws");
@@ -52,27 +74,12 @@ void Game::setupClient()
     _webSocketClient->setReconnectInterval(5000);
 }
 
-void Game::resetPoints()
+void Game::resetAllPlayersPoints()
 {
-    this->playerPoints.clear();
+    this->playersPoints.clear();
 }
 
-void Game::setDeviceButtonPressDelay(uint8_t deviceID, short time)
-{
-    this->buttonPressDelay[deviceID] = time;
-}
-
-short Game::getDeviceButtonPressDelay(uint8_t deviceID)
-{
-    return this->buttonPressDelay[deviceID];
-}
-
-void Game::resetButtonPressDelay()
-{
-    this->buttonPressDelay.clear();
-}
-
-void Game::setupServer()
+void Game::initServer()
 {
     setDeviceID(1);
     connectedDevicesID.push_back(1);
@@ -82,27 +89,7 @@ void Game::setupServer()
     {
         Serial.println("Errore SPIFFS");
     }
-    _server->on("/", HTTP_ANY, [](AsyncWebServerRequest *request)
-                { request->send(SPIFFS, "/index.html"); });
-    _server->on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request)
-                { request->send(SPIFFS, "/style.css", "text/css"); });
-    _server->on("/functions.js", HTTP_GET, [](AsyncWebServerRequest *request)
-                { request->send(SPIFFS, "/functions.js", "text/js"); });
-    _server->on("/points", HTTP_GET, [&](AsyncWebServerRequest *request)
-                { 
-              AsyncJsonResponse* response = new AsyncJsonResponse();
-              response->addHeader("Server","ESP Async Web Server");
-              const JsonObject& jsonData = response->getRoot();
-              int index = 0;
-              for (uint8_t deviceID : this->connectedDevicesID)
-              {
-                jsonData["players"][index]["id"] = deviceID;
-                jsonData["players"][index]["points"] = this->playerPoints[deviceID];
-                jsonData["players"][index]["time"] = this->buttonPressDelay[deviceID];
-                index++;
-              }
-              response->setLength();
-              request->send(response); });
+    this->configServerEndpoints(_server);
     _ws->onEvent([&](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
                  { webSocketServerEvent(server, client, type, arg, data, len); });
     _server->addHandler(_ws);

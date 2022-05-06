@@ -13,9 +13,11 @@ private:
         unsigned short time = SHRT_MAX;
     } Winner;
     void manageCurrentWinner(uint8_t id, unsigned short pressingTime);
+    std::map<uint8_t, short> deviceButtonPressDelay;
 
 protected:
     void checkResults(uint8_t winnerID);
+    void setup(bool isHost) override;
     void startGame() override;
     void endGame() override;
     void gameLoop() override;
@@ -27,6 +29,10 @@ protected:
     void onWinnerResultsRecieved(uint8_t winnerID) override;
     void onNewDeviceConnected(uint8_t deviceID) override;
     void onDeviceDisconnected(uint8_t deviceID){};
+    void setDeviceButtonPressDelay(uint8_t deviceID, short time);
+    short getDeviceButtonPressDelay(uint8_t deviceID);
+    void resetButtonPressDelay();
+    void configServerEndpoints(AsyncWebServer *_server) override;
 
 public:
     Multiplayer() : Game(){};
