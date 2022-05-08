@@ -3,7 +3,7 @@
 #include <screen_utils.h>
 
 #define MAX_NUMBER_OF_ATTEMPTS 10
-#define MAX_LIGHT_ON_TIME 2000
+#define MAX_LIGHT_ON_TIME 3000
 
 class Singleplayer : public Game
 {

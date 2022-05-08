@@ -20,7 +20,7 @@ void Singleplayer::startGame()
         this->playerResponseDelays.clear();
         this->numberOfAttempts = 0;
         this->deviceWithLightON = random(1, this->getConnectedDevicesID().size() + 1);
-        delay(random(500, 4000));
+        delay(random(3000, 6500));
         (deviceWithLightON == 1) ? setLightOn() : this->sendSwitchLightOn(this->deviceWithLightON);
         this->timeSinceLastDeviceLightOn = millis();
     }

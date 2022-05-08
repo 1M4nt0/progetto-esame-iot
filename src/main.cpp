@@ -56,6 +56,7 @@ void setup()
 {
   initDisplay();
   drawToScreen("Avvio...");
+  delay(2000);
   Serial.begin(115200);
   if (gamemode == 0)
   {
