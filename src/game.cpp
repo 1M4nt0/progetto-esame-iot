@@ -62,7 +62,7 @@ void Game::incrementPlayerPoints(uint8_t playerID, int increment)
 
 std::vector<uint8_t> Game::getConnectedDevicesID()
 {
-    return this->getConnectedDevicesID();
+    return this->connectedDevicesID;
 }
 
 void Game::initClient()

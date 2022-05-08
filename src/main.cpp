@@ -3,11 +3,12 @@
 #include "SPI.h"
 #include "screen_utils.h"
 #include <ArduinoOTA.h>
+#include <singleplayer.h>
 #include <multiplayer.h>
 
 const char *WIFI_SSID = "IoTGame";
 const char *WIFI_PASSWORD = "testpassword";
-bool gamemode = 0;
+bool gamemode = 1;
 Game *_game;
 
 void startOTA()
@@ -47,7 +48,6 @@ void manageConnection()
   }
   else
   {
-    drawToScreen("Connesso!");
     _game->init(false);
   }
 }
@@ -61,11 +61,16 @@ void setup()
   {
     _game = new Multiplayer();
   }
+  else
+  {
+    _game = new Singleplayer();
+  }
   pinMode(BUTTON_PIN, INPUT);
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW);
   manageConnection();
   startOTA();
+  _game->startGame();
 }
 
 void loop()

@@ -20,7 +20,6 @@ class Game
 {
 protected:
     virtual void setup(bool isHost) = 0;
-    virtual void startGame() = 0;
     virtual void endGame() = 0;
     virtual void gameLoop() = 0;
     virtual void onTimeRecieved(uint8_t deviceID, short time) = 0;
@@ -57,6 +56,7 @@ public:
     Game();
     ~Game(){};
     void init(bool isHost);
+    virtual void startGame() = 0;
     void loop();
     bool getIsHost();
     bool setIsHost();
