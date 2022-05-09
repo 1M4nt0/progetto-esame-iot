@@ -35,5 +35,5 @@ protected:
     void configServerEndpoints(AsyncWebServer *_server) override;
 
 public:
-    Multiplayer() : Game(){};
+    Multiplayer(AsyncWebServer *_server) : Game(_server){};
 };

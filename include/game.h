@@ -53,7 +53,7 @@ protected:
     void initCommunication(bool isHost);
 
 public:
-    Game();
+    Game(AsyncWebServer *_server);
     ~Game(){};
     void init(bool isHost);
     virtual void startGame() = 0;

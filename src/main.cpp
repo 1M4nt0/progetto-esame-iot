@@ -3,13 +3,13 @@
 #include "SPI.h"
 #include "screen_utils.h"
 #include <ArduinoOTA.h>
-#include <singleplayer.h>
-#include <multiplayer.h>
+#include <gameManager.h>
 
 const char *WIFI_SSID = "IoTGame";
 const char *WIFI_PASSWORD = "testpassword";
-bool gamemode = 1;
-Game *_game;
+bool isHost;
+
+GameManager *gameManager;
 
 void startOTA()
 {
@@ -29,6 +29,13 @@ void startOTA()
   ArduinoOTA.begin();
 }
 
+void initPins()
+{
+  pinMode(BUTTON_PIN, INPUT);
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
+}
+
 void manageConnection()
 {
   drawToScreen("Connessione...");
@@ -44,11 +51,11 @@ void manageConnection()
   {
     WiFi.mode(WIFI_MODE_AP);
     WiFi.softAP(WIFI_SSID, WIFI_PASSWORD, 7, 0);
-    _game->init(true);
+    isHost = true;
   }
   else
   {
-    _game->init(false);
+    isHost = false;
   }
 }
 
@@ -58,26 +65,18 @@ void setup()
   drawToScreen("Avvio...");
   delay(2000);
   Serial.begin(115200);
-  if (gamemode == 0)
-  {
-    _game = new Multiplayer();
-  }
-  else
-  {
-    _game = new Singleplayer();
-  }
-  pinMode(BUTTON_PIN, INPUT);
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, LOW);
+  initPins();
   manageConnection();
+  gameManager = new GameManager(isHost);
+  gameManager->initializeGame(0);
   startOTA();
-  _game->startGame();
+  gameManager->setPaused(false);
 }
 
 void loop()
 {
   ArduinoOTA.handle();
-  if (WiFi.status() != WL_CONNECTED && _game->getIsHost() != true)
+  if (WiFi.status() != WL_CONNECTED && isHost != true)
   {
     drawTwoToScreen("Connessione", "persa :(");
     delay(random(1000, 10000));
@@ -85,6 +84,6 @@ void loop()
   }
   else
   {
-    _game->loop();
+    gameManager->loop();
   }
 }

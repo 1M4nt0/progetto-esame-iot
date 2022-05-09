@@ -41,5 +41,5 @@ protected:
     void managePressingTime(uint8_t deviceID, short time);
 
 public:
-    Singleplayer() : Game(){};
+    Singleplayer(AsyncWebServer *_server) : Game(_server){};
 };

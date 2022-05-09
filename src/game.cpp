@@ -3,8 +3,9 @@
 
 uint8_t dataBuffer[3]; // buffer to hold packets
 
-Game::Game()
+Game::Game(AsyncWebServer *_server)
 {
+    this->_server = _server;
     pinMode(BUTTON_PIN, INPUT);
     pinMode(LED_PIN, OUTPUT);
     this->isLightOn = false;
@@ -83,7 +84,6 @@ void Game::initServer()
 {
     setDeviceID(1);
     connectedDevicesID.push_back(1);
-    _server = new AsyncWebServer(80);
     _ws = new AsyncWebSocket("/ws");
     if (!SPIFFS.begin(true))
     {
@@ -93,7 +93,6 @@ void Game::initServer()
     _ws->onEvent([&](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
                  { webSocketServerEvent(server, client, type, arg, data, len); });
     _server->addHandler(_ws);
-    _server->begin();
 }
 
 void Game::sendSwitchLightOn()
