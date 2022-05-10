@@ -2,16 +2,28 @@
 #include <multiplayer.h>
 #include <singleplayer.h>
 #include <HTTPClient.h>
+#include <ESPAsyncWebServer.h>
+#include <WebSocketsClient.h>
 
 class GameManager
 {
 private:
-    int _currentGameID = 0;
     Game *_game;
     AsyncWebServer *_server;
-    HTTPClient *http;
+    WebSocketsClient *_webSocketClient;
+    AsyncWebSocket *_ws;
+    int _currentGameID = 0;
+    std::vector<uint8_t> connectedDevicesID;
     bool _paused = true;
     bool _isHost;
+    void initClient();
+    void initServer();
+    void webSocketClientEvent(WStype_t type, uint8_t *payload, size_t length);
+    void webSocketServerEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
+    void sendDeviceID(uint32_t clientID, uint8_t deviceID);
+    void sendChangeGame(uint8_t gameID);
+    void sendChangeGame(uint8_t gameID, uint8_t deviceID);
+    void sendPause(bool pause);
 
 public:
     GameManager(bool isHost);
@@ -20,5 +32,4 @@ public:
     void initializeGame(int gameID);
     void setPaused(bool pause);
     bool isPaused();
-    void getConfigFromHost();
 };

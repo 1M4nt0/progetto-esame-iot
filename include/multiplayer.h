@@ -17,7 +17,6 @@ private:
 
 protected:
     void checkResults(uint8_t winnerID);
-    void setup(bool isHost) override;
     void startGame() override;
     void endGame() override;
     void gameLoop() override;
@@ -35,5 +34,5 @@ protected:
     void configServerEndpoints(AsyncWebServer *_server) override;
 
 public:
-    Multiplayer(AsyncWebServer *_server) : Game(_server){};
+    Multiplayer(AsyncWebServer *_server, std::vector<uint8_t> *connectedDevicesID) : Game(_server, connectedDevicesID){};
 };

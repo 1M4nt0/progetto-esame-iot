@@ -1,13 +1,5 @@
 #include <multiplayer.h>
 
-void Multiplayer::setup(bool isHost)
-{
-    if (isHost)
-    {
-        drawDashboard(this->getDeviceID(), this->getPlayerPoints(this->getDeviceID()));
-    }
-}
-
 void Multiplayer::manageCurrentWinner(uint8_t id, unsigned short pressingTime)
 {
     if (Winner.time > pressingTime)
@@ -31,7 +23,7 @@ void Multiplayer::configServerEndpoints(AsyncWebServer *_server)
               response->addHeader("Server","ESP Async Web Server");
               const JsonObject& jsonData = response->getRoot();
               int index = 0;
-              for (uint8_t deviceID : this->getConnectedDevicesID())
+              for (uint8_t deviceID : *this->getConnectedDevicesID())
               {
                 jsonData["players"][index]["id"] = deviceID;
                 jsonData["players"][index]["points"] = this->getPlayerPoints(deviceID);
@@ -44,6 +36,7 @@ void Multiplayer::configServerEndpoints(AsyncWebServer *_server)
 
 void Multiplayer::startGame()
 {
+    drawDashboard(this->getDeviceID(), this->getPlayerPoints(this->getDeviceID()));
     Winner.time = SHRT_MAX;
     Winner.id = 0;
     this->resetButtonPressDelay();

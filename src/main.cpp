@@ -70,7 +70,6 @@ void setup()
   gameManager = new GameManager(isHost);
   gameManager->initializeGame(0);
   startOTA();
-  gameManager->setPaused(false);
 }
 
 void loop()

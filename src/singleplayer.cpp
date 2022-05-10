@@ -19,10 +19,14 @@ void Singleplayer::startGame()
         Winner.id = 0;
         this->playerResponseDelays.clear();
         this->numberOfAttempts = 0;
-        this->deviceWithLightON = random(1, this->getConnectedDevicesID().size() + 1);
+        this->deviceWithLightON = random(1, this->getConnectedDevicesID()->size() + 1);
         delay(random(3000, 6500));
         (deviceWithLightON == 1) ? setLightOn() : this->sendSwitchLightOn(this->deviceWithLightON);
         this->timeSinceLastDeviceLightOn = millis();
+    }
+    else
+    {
+        drawToScreen("...");
     }
 };
 void Singleplayer::endGame()
@@ -77,7 +81,7 @@ void Singleplayer::gameLoop()
                 {
                     this->playerResponseDelays[this->currentPlayer][this->numberOfAttempts] = MAX_LIGHT_ON_TIME;
                 }
-                this->deviceWithLightON = random(1, this->getConnectedDevicesID().size() + 1);
+                this->deviceWithLightON = random(1, this->getConnectedDevicesID()->size() + 1);
                 this->numberOfAttempts += 1;
                 delay(random(500, 4000));
                 (deviceWithLightON == 1) ? setLightOn() : this->sendSwitchLightOn(this->deviceWithLightON);
@@ -152,9 +156,4 @@ void Singleplayer::configServerEndpoints(AsyncWebServer *_server)
             }
             response->setLength();
             request->send(response); });
-}
-
-void Singleplayer::onDeviceIDRecieved()
-{
-    drawToScreen("...");
 }

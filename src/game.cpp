@@ -3,8 +3,9 @@
 
 uint8_t dataBuffer[3]; // buffer to hold packets
 
-Game::Game(AsyncWebServer *_server)
+Game::Game(AsyncWebServer *_server, std::vector<uint8_t> *connectedDevicesID)
 {
+    this->connectedDevicesID = connectedDevicesID;
     this->_server = _server;
     pinMode(BUTTON_PIN, INPUT);
     pinMode(LED_PIN, OUTPUT);
@@ -12,24 +13,8 @@ Game::Game(AsyncWebServer *_server)
     this->lightOnTime = 0;
 }
 
-void Game::init(bool isHost)
-{
-    this->isHost = isHost;
-    this->initCommunication(isHost);
-    this->setup(isHost);
-}
-
-void Game::initCommunication(bool isHost)
-{
-    (isHost) ? initServer() : initClient();
-}
-
 void Game::loop()
 {
-    if (!this->getIsHost())
-    {
-        _webSocketClient->loop();
-    }
     this->gameLoop();
 }
 bool Game::getIsHost()
@@ -61,38 +46,23 @@ void Game::incrementPlayerPoints(uint8_t playerID, int increment)
     playersPoints[playerID] = playersPoints[playerID] + increment;
 }
 
-std::vector<uint8_t> Game::getConnectedDevicesID()
+void Game::initClient(WebSocketsClient *socketClient)
 {
-    return this->connectedDevicesID;
+    this->isHost = false;
+    _webSocketClient = socketClient;
 }
 
-void Game::initClient()
+void Game::initServer(AsyncWebSocket *socketServer)
 {
-    _webSocketClient = new WebSocketsClient();
-    _webSocketClient->begin("192.168.4.1", 80, "/ws");
-    _webSocketClient->onEvent([&](WStype_t type, uint8_t *payload, size_t length)
-                              { webSocketClientEvent(type, payload, length); });
-    _webSocketClient->setReconnectInterval(5000);
+    this->isHost = true;
+    _ws = socketServer;
+    this->setDeviceID(1);
+    // this->configServerEndpoints();
 }
 
 void Game::resetAllPlayersPoints()
 {
     this->playersPoints.clear();
-}
-
-void Game::initServer()
-{
-    setDeviceID(1);
-    connectedDevicesID.push_back(1);
-    _ws = new AsyncWebSocket("/ws");
-    if (!SPIFFS.begin(true))
-    {
-        Serial.println("Errore SPIFFS");
-    }
-    this->configServerEndpoints(_server);
-    _ws->onEvent([&](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
-                 { webSocketServerEvent(server, client, type, arg, data, len); });
-    _server->addHandler(_ws);
 }
 
 void Game::sendSwitchLightOn()
@@ -138,22 +108,19 @@ uint8_t Game::getDeviceID()
 {
     return deviceID;
 }
+
 void Game::setDeviceID(uint8_t deviceID)
 {
     this->deviceID = deviceID;
 }
-void Game::sendDeviceID(uint32_t clientID, uint8_t deviceID)
-{
-    memset(dataBuffer, (uint8_t)C_PLAYER_ID, sizeof(uint8_t));
-    memcpy(dataBuffer + 1, &deviceID, sizeof(uint8_t));
-    _ws->binary(clientID, dataBuffer, sizeof(uint8_t) + sizeof(uint8_t));
-};
+
 void Game::sendTime(short time)
 {
     memset(dataBuffer, (uint8_t)C_TIME, sizeof(uint8_t));
     memcpy(dataBuffer + 1, &time, sizeof(short));
     _webSocketClient->sendBIN(dataBuffer, sizeof(uint8_t) + sizeof(short));
 };
+
 void Game::sendWinner(uint8_t winnerID, bool broadcast)
 {
     memset(dataBuffer, (uint8_t)C_WINNER, 1);
@@ -168,76 +135,41 @@ void Game::sendWinner(uint8_t winnerID, bool broadcast)
     }
 }
 
-void Game::webSocketClientEvent(WStype_t type, uint8_t *payload, size_t length)
+void Game::manageMessages(uint8_t fromID, uint8_t *payload, size_t length)
 {
-    switch (type)
+    int code = payload[0];
+    if (code == C_PLAYER_ID) // Player ID ricevuto
     {
-    case WStype_DISCONNECTED:
-        break;
-    case WStype_CONNECTED:
-        break;
-    case WStype_BIN:
-    {
-        int code = payload[0];
-        if (code == C_PLAYER_ID)
-        {
-            uint8_t id;
-            memcpy(&id, payload + 1, sizeof(uint8_t));
-            setDeviceID(id);
-            onDeviceIDRecieved();
-        }
-        else if (code == C_LIGHTS_ON)
-        {
-            setLightOn();
-            onSwitchLightOn();
-        }
-        else if (code == C_LIGHTS_OFF)
-        {
-            setLightOff();
-            onSwitchLightOff();
-        }
-        else if (code == C_WINNER)
-        {
-            uint8_t id;
-            memcpy(&id, payload + 1, sizeof(uint8_t));
-            onWinnerResultsRecieved(id);
-        }
+        uint8_t id;
+        memcpy(&id, payload + 1, sizeof(uint8_t));
+        this->setDeviceID(id);
+        this->onDeviceIDRecieved();
     }
-    break;
-    case WStype_ERROR:
-        break;
+    else if (code == C_LIGHTS_ON) // Ricevuto comando accenditi
+    {
+        this->setLightOn();
+        this->onSwitchLightOn();
+    }
+    else if (code == C_LIGHTS_OFF) // Ricevuto comando spegniti
+    {
+        this->setLightOff();
+        this->onSwitchLightOff();
+    }
+    else if (code == C_WINNER) // Rievuto comando vincitore
+    {
+        uint8_t id;
+        memcpy(&id, payload + 1, sizeof(uint8_t));
+        this->onWinnerResultsRecieved(id);
+    }
+    else if (code == C_TIME) // Ricevuto tempo dal client
+    {
+        unsigned short time;
+        memcpy(&time, payload + 1, 2);
+        onTimeRecieved(fromID, time);
     }
 }
-void Game::webSocketServerEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
+
+std::vector<uint8_t> *Game::getConnectedDevicesID()
 {
-    uint8_t deviceID = client->id() + 1;
-    if (type == WS_EVT_CONNECT) // CLIENT CONNECTED
-    {
-        connectedDevicesID.push_back(deviceID);
-        sendDeviceID(client->id(), deviceID);
-        onNewDeviceConnected(deviceID);
-    }
-    else if (type == WS_EVT_DISCONNECT) // CLIENT DISCONNECTED
-    {
-        connectedDevicesID.erase(remove(connectedDevicesID.begin(), connectedDevicesID.end(), deviceID), connectedDevicesID.end());
-        onDeviceDisconnected(deviceID);
-    }
-    else if (type == WS_EVT_DATA) // RECEIVED DATA
-    {
-        AwsFrameInfo *info = (AwsFrameInfo *)arg;
-        if (info->final && info->index == 0 && info->len == len && info->opcode == WS_BINARY)
-        {
-            uint8_t code = data[0];
-            if (code == C_TIME)
-            {
-                unsigned short time;
-                memcpy(&time, data + 1, 2);
-                onTimeRecieved(deviceID, time);
-            }
-        }
-    }
-    else if (type == WS_EVT_ERROR)
-    {
-        // error was received from the other end
-    }
+    return this->connectedDevicesID;
 }

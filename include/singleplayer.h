@@ -21,7 +21,6 @@ private:
     } Winner;
 
 protected:
-    void setup(bool isHost){};
     void startGame() override;
     void endGame() override;
     void gameLoop() override;
@@ -29,7 +28,7 @@ protected:
     void onButtonPressed() override;
     void onSwitchLightOn(){};
     void onSwitchLightOff(){};
-    void onDeviceIDRecieved() override;
+    void onDeviceIDRecieved(){};
     void onWinnerResultsRecieved(uint8_t winnerID){};
     void onNewDeviceConnected(uint8_t deviceID){};
     void onDeviceDisconnected(uint8_t deviceID){};
@@ -41,5 +40,5 @@ protected:
     void managePressingTime(uint8_t deviceID, short time);
 
 public:
-    Singleplayer(AsyncWebServer *_server) : Game(_server){};
+    Singleplayer(AsyncWebServer *_server, std::vector<uint8_t> *connectedDevicesID) : Game(_server, connectedDevicesID){};
 };
