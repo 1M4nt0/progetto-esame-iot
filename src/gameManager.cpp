@@ -2,9 +2,6 @@
 
 uint8_t dataBuffer2[3];
 
-#define C_NEW_GAMEMODE 6
-#define C_PAUSE 7
-
 GameManager::GameManager(bool isHost)
 {
     this->_isHost = isHost;

@@ -5,6 +5,9 @@
 #include <ESPAsyncWebServer.h>
 #include <WebSocketsClient.h>
 
+#define C_NEW_GAMEMODE 6
+#define C_PAUSE 7
+
 class GameManager
 {
 private:
