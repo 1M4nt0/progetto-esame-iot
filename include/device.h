@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <Arduino.h>
+#include <ArduinoOTA.h>
 #include <deviceSocket.h>
 
 #define BUTTON_PIN 16
@@ -12,7 +13,7 @@ protected:
     void setDefaultHandlers();
 
 public:
-    Device(bool isHost);
+    Device();
     void setDeviceID(uint8_t deviceID);
     uint8_t getDeviceID();
     void setLight(bool on);
@@ -24,4 +25,5 @@ private:
     bool _lightON;
     bool _buttonPressed;
     DeviceSocket *_deviceSocket;
+    void initOTA();
 };
