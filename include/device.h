@@ -8,6 +8,9 @@
 
 class Device
 {
+protected:
+    void setDefaultHandlers();
+
 public:
     Device(bool isHost);
     void setDeviceID(uint8_t deviceID);

@@ -1,4 +1,5 @@
 #include <device.h>
+#include <messageCodes.h>
 
 Device::Device(bool isHost)
 {
@@ -6,6 +7,11 @@ Device::Device(bool isHost)
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, LOW);
     this->_deviceSocket = new DeviceSocket(&isHost);
+    this->setDefaultHandlers();
+    if (isHost)
+    {
+        this->_deviceID = 1;
+    }
 }
 
 void Device::setDeviceID(uint8_t deviceID)
@@ -39,4 +45,17 @@ void Device::loop()
 DeviceSocket *Device::socket()
 {
     return this->_deviceSocket;
+}
+
+void Device::setDefaultHandlers()
+{
+    this->_deviceSocket->on(T_BIN_MASSAGE, [&](uint8_t from, uint8_t *payload, int len)
+                            { 
+                                if (payload[0] == C_LIGHTS_ON) {
+                                      this->setLight(true);
+                                  }else if(payload[0] == C_LIGHTS_OFF){
+                                      this->setLight(false);
+                                  }else if(payload[0] == C_DEVICE_ID){
+                                      this->_deviceID = payload[1];
+                                  } });
 }
