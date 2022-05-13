@@ -9,7 +9,7 @@ Device::Device()
     this->_deviceSocket = new DeviceSocket();
     initOTA();
     this->setDefaultHandlers();
-    if (this->_deviceSocket->getIsHost())
+    if (this->isHost())
     {
         this->_deviceID = 1;
     }
@@ -59,6 +59,11 @@ void Device::loop()
     }
 }
 
+bool Device::isHost()
+{
+    return this->_deviceSocket->isHost();
+}
+
 DeviceSocket *Device::socket()
 {
     return this->_deviceSocket;
@@ -77,7 +82,11 @@ void Device::setDefaultHandlers()
             this->setLight(false);
             break;
         case C_DEVICE_ID:
-            this->_deviceID = message->payload[0];
+        {
+            if(!this->socket()->isHost()){
+                this->_deviceID = message->payload[0];
+            }
+        }     
         default:
             break;
         }; });

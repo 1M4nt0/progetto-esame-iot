@@ -19,6 +19,7 @@ public:
     void setLight(bool on);
     void loop();
     DeviceSocket *socket();
+    bool isHost();
 
 private:
     uint8_t _deviceID;

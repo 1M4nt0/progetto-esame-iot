@@ -25,7 +25,7 @@ DeviceSocket::DeviceSocket()
     }
 }
 
-bool DeviceSocket::getIsHost()
+bool DeviceSocket::isHost()
 {
     return this->_isHost;
 }

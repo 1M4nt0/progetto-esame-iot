@@ -19,7 +19,7 @@ protected:
 
 public:
     DeviceSocket();
-    bool getIsHost();
+    bool isHost();
     void sendMessage(uint8_t deviceID, uint8_t messageCode);
     void sendMessage(uint8_t deviceID, uint8_t messageCode, uint8_t *payload, int len);
     void sendMessageAll(uint8_t messageCode);
