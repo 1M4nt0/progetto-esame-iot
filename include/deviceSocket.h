@@ -9,6 +9,7 @@
 
 #define WIFI_SSID "IoTGame"
 #define WIFI_PASSWORD "testpassword"
+#define MAX_CONNECTED_DEVICES 7
 
 class DeviceSocket
 {
@@ -24,6 +25,7 @@ public:
     void sendMessage(uint8_t deviceID, uint8_t messageCode, uint8_t *payload, int len);
     void sendMessageAll(uint8_t messageCode);
     void sendMessageAll(uint8_t messageCode, uint8_t *payload, int len);
+    std::vector<uint8_t> getConnectedDevicesIDVector() { return _connectedDevicesID; };
     void on(WSH_Event event, SocketEventCallback onEvent);
     void on(WSH_Message messageType, SocketMessageCallback onMessage);
     void loop();

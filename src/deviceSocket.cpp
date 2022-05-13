@@ -179,8 +179,15 @@ void DeviceSocket::webSocketServerEvent(AsyncWebSocket *server, AsyncWebSocketCl
 {
     if (type == WS_EVT_CONNECT) // CLIENT CONNECTED
     {
-        _connectedDevicesID.push_back(client->id());
-        this->handle(WSHM_CONNECTED, client->id(), nullptr);
+        if (_connectedDevicesID.size() == MAX_CONNECTED_DEVICES)
+        {
+            client->close();
+        }
+        else
+        {
+            _connectedDevicesID.push_back(client->id());
+            this->handle(WSHM_CONNECTED, client->id(), nullptr);
+        }
     }
     else if (type == WS_EVT_DISCONNECT) // CLIENT DISCONNECTED
     {

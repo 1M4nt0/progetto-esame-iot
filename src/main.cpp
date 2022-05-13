@@ -1,6 +1,8 @@
 #include <device.h>
+#include <multiplayer.h>
 
 Device *device;
+Game *game;
 
 void setup()
 {
@@ -8,15 +10,14 @@ void setup()
   Serial.println("Avvio");
   delay(1000);
   device = new Device();
-  Serial.println("Device Creato");
-  delay(3000);
+  game = new Multiplayer(device);
+  game->initalize();
+  game->start();
+  Serial.println("Ready!");
 }
 
 void loop()
 {
   device->loop();
-  if (device->isButtonPressed())
-  {
-    Serial.println("Bottone premuto!");
-  }
+  game->loop();
 }

@@ -19,7 +19,7 @@ void Device::initOTA()
 {
     ArduinoOTA
         .onStart([&]()
-                 { this->setLight(false); })
+                 { this->setLightOn(false); })
         .onEnd([]()
                { Serial.println("Aggiornamento completato!"); })
         .onProgress([](unsigned int progress, unsigned int total)
@@ -39,15 +39,10 @@ uint8_t Device::getDeviceID()
     return this->_deviceID;
 }
 
-void Device::setLight(bool on)
+void Device::setLightOn(bool on)
 {
     this->_lightON = on;
     digitalWrite(LED_PIN, (on) ? HIGH : LOW);
-}
-
-bool Device::isButtonPressed()
-{
-    return this->_buttonPressed;
 }
 
 void Device::loop()
@@ -81,17 +76,11 @@ void Device::setDefaultHandlers()
         switch (message->code)
         {
         case C_LIGHTS_ON:
-            this->setLight(true);
+            this->setLightOn(true);
             break;
         case C_LIGHTS_OFF:
-            this->setLight(false);
-            break;
-        case C_DEVICE_ID:
-        {
-            if(!this->isHost()){
-                this->_deviceID = message->payload[0];
-            }
-        }     
+            this->setLightOn(false);
+            break;    
         default:
             break;
         }; });

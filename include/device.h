@@ -16,7 +16,7 @@ public:
     Device();
     void setDeviceID(uint8_t deviceID);
     uint8_t getDeviceID();
-    void setLight(bool on);
+    void setLightOn(bool on);
     void loop();
     DeviceSocket *socket();
     bool isHost();
@@ -24,7 +24,8 @@ public:
     void sendSwitchLightOn(uint8_t deviceID);
     void sendSwitchLightOff();
     void sendSwitchLightOff(uint8_t deviceID);
-    bool isButtonPressed();
+    bool isButtonPressed() { return this->_buttonPressed; };
+    bool isLightOn() { return this->_lightON; };
 
 private:
     uint8_t _deviceID;
