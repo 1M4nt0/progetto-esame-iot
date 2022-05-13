@@ -21,6 +21,7 @@ Multiplayer::Multiplayer(Device *device) : Game(device)
             {
                 uint8_t playerID = message->payload[0];
                 this->_setPlayerID(playerID);
+                drawDashboard(this->_playerID, 99);
             }
         }
         case C_TIME:
@@ -28,7 +29,7 @@ Multiplayer::Multiplayer(Device *device) : Game(device)
             if (this->device->isHost())
             {
                 unsigned short time;
-                uint8_t playerID = this->_playerDevice.find(from)->first;
+                uint8_t playerID = this->_findPlayerIDbyDeviceID(from);
                 memcpy(&time, message->payload, sizeof(short));
                 this->_manageWinnerTime(playerID, time);
             }
@@ -107,6 +108,18 @@ void Multiplayer::_initPlayerIDMap()
     }
 }
 
+uint8_t Multiplayer::_findPlayerIDbyDeviceID(uint8_t deviceID)
+{
+    for (auto player = this->_playerDevice.begin(); player != this->_playerDevice.end(); player++)
+    {
+        if (player->second == deviceID)
+        {
+            return player->first;
+        }
+    }
+    return 255;
+}
+
 void Multiplayer::_addPlayer(uint8_t deviceID)
 {
     for (uint8_t id = 1; id <= MAX_PLAYERS; id++)
@@ -114,7 +127,7 @@ void Multiplayer::_addPlayer(uint8_t deviceID)
         if (_playerDevice[id] == 255)
         {
             _playerDevice[id] = deviceID;
-            this->device->socket()->sendMessage(deviceID, C_PLAYER_ID, &id, sizeof(id));
+            this->device->socket()->sendMessage(deviceID, C_PLAYER_ID, &id, sizeof(uint8_t));
             Serial.printf("Connected device %i with playerID %i\n", deviceID, id);
             break;
         }
@@ -169,7 +182,6 @@ void Multiplayer::_manageWinnerTime(uint8_t playerID, unsigned short buttonPress
 void Multiplayer::onLightOn()
 {
     this->_lightOnTime = millis();
-    drawDashboard(this->_playerID, 99);
 }
 
 void Multiplayer::_displayResults(bool isWinner)

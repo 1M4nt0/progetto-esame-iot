@@ -47,7 +47,7 @@ void DeviceSocket::connectToWifi()
     }
     else
     {
-        this->_isHost = true;
+        this->_isHost = false;
     }
 }
 
@@ -84,10 +84,10 @@ void DeviceSocket::sendMessage(uint8_t deviceID, uint8_t messageCode)
 void DeviceSocket::sendMessage(uint8_t deviceID, uint8_t messageCode, uint8_t *payload, int len)
 {
     memset(packetBuffer, messageCode, sizeof(uint8_t));
-    memcpy(packetBuffer + 1, &payload, len);
+    memcpy(packetBuffer + 1, payload, len);
     if (deviceID == 0)
     {
-        this->_socketClient->sendBIN(packetBuffer, sizeof(uint8_t));
+        this->_socketClient->sendBIN(packetBuffer, sizeof(uint8_t) + len);
     }
     else
     {
@@ -107,7 +107,7 @@ void DeviceSocket::sendMessageAll(uint8_t messageCode)
 void DeviceSocket::sendMessageAll(uint8_t messageCode, uint8_t *payload, int len)
 {
     memset(packetBuffer, messageCode, sizeof(uint8_t));
-    memcpy(packetBuffer + 1, &payload, len);
+    memcpy(packetBuffer + 1, payload, len);
     if (this->_isHost)
     {
         this->_socketHost->binaryAll(packetBuffer, sizeof(uint8_t) + len);
