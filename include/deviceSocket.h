@@ -13,8 +13,8 @@
 class DeviceSocket
 {
 protected:
-    void handle(uint8_t from, HandlerMsgType type, SocketDataMessage *message);
-    void handle(uint8_t from, HandlerMsgType type);
+    void handle(WSH_Event event);
+    void handle(WSH_Message messageType, uint8_t from, SocketDataMessage *message);
     void handleNewDeviceConnected(uint8_t deviceID);
 
 public:
@@ -24,8 +24,8 @@ public:
     void sendMessage(uint8_t deviceID, uint8_t messageCode, uint8_t *payload, int len);
     void sendMessageAll(uint8_t messageCode);
     void sendMessageAll(uint8_t messageCode, uint8_t *payload, int len);
-    void on(HandlerMsgType messageType, SocketMessageCallback onMessage);
-    void on(HandlerMsgType messageType, SocketDataMessageCallback onMessage);
+    void on(WSH_Event event, SocketEventCallback onEvent);
+    void on(WSH_Message messageType, SocketMessageCallback onMessage);
     void loop();
 
 private:

@@ -71,7 +71,7 @@ DeviceSocket *Device::socket()
 
 void Device::setDefaultHandlers()
 {
-    this->_deviceSocket->on(T_BIN_MASSAGE, [&](uint8_t from, HandlerMsgType msgType, SocketDataMessage *message)
+    this->_deviceSocket->on(WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
                             {
         switch (message->code)
         {

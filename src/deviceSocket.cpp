@@ -114,40 +114,41 @@ void DeviceSocket::sendMessageAll(uint8_t messageCode, uint8_t *payload, int len
     }
 }
 
-void DeviceSocket::on(HandlerMsgType messageType, SocketMessageCallback onMessage)
+void DeviceSocket::on(WSH_Event event, SocketEventCallback onEvent)
 {
     SocketMessageHandler *handler = new SocketMessageHandler();
+    handler->setEventType(event);
+    handler->onEvent(onEvent);
+    _handlers.push_back(handler);
+}
+
+void DeviceSocket::on(WSH_Message messageType, SocketMessageCallback onMessage)
+{
+    SocketMessageHandler *handler = new SocketMessageHandler();
+    handler->setEventType(WSHE_MESSAGE);
     handler->setMessageType(messageType);
     handler->onMessage(onMessage);
     _handlers.push_back(handler);
 }
 
-void DeviceSocket::on(HandlerMsgType messageType, SocketDataMessageCallback onMessage)
-{
-    SocketMessageHandler *handler = new SocketMessageHandler();
-    handler->setMessageType(messageType);
-    handler->onDataMessage(onMessage);
-    _handlers.push_back(handler);
-}
-
-void DeviceSocket::handle(uint8_t from, HandlerMsgType type)
+void DeviceSocket::handle(WSH_Event event)
 {
     for (SocketMessageHandler *handler : _handlers)
     {
-        if (handler->getMessageType() == type)
+        if (handler->getEventType() == event)
         {
-            handler->handle(from, type);
+            handler->handle(event);
         }
     }
 }
 
-void DeviceSocket::handle(uint8_t from, HandlerMsgType type, SocketDataMessage *message)
+void DeviceSocket::handle(WSH_Message messageType, uint8_t from, SocketDataMessage *message)
 {
     for (SocketMessageHandler *handler : _handlers)
     {
-        if (handler->getMessageType() == type)
+        if (handler->getEventType() == WSHE_MESSAGE && handler->getMessageType() == messageType)
         {
-            handler->handle(from, type, message);
+            handler->handle(messageType, from, message);
         }
     }
 }
@@ -156,19 +157,20 @@ void DeviceSocket::webSocketClientEvent(WStype_t type, uint8_t *payload, size_t 
 {
     if (type == WStype_DISCONNECTED)
     {
-        this->handle(0, T_DISCONNECTED);
+        this->handle(WSHE_SOCKET_DISCONNECTED);
     }
     else if (type == WStype_CONNECTED)
     {
-        this->handle(0, T_CONNECTED);
+        this->handle(WSHE_SOCKET_CONNECTED);
     }
     else if (type == WStype_BIN)
     {
         SocketDataMessage *data = new SocketDataMessage{payload[0], payload + 1, length - 1};
-        this->handle(0, T_BIN_MASSAGE, data);
+        this->handle(WSHM_BIN, 0, data);
     }
     else if (type == WStype_ERROR)
     {
+        this->handle(WSHE_ERROR);
         Serial.println("Error in communication!s");
     }
 }
@@ -178,12 +180,12 @@ void DeviceSocket::webSocketServerEvent(AsyncWebSocket *server, AsyncWebSocketCl
     if (type == WS_EVT_CONNECT) // CLIENT CONNECTED
     {
         _connectedDevicesID.push_back(client->id());
-        this->handle(client->id(), T_CONNECTED);
+        this->handle(WSHM_CONNECTED, client->id(), nullptr);
     }
     else if (type == WS_EVT_DISCONNECT) // CLIENT DISCONNECTED
     {
         _connectedDevicesID.erase(remove(_connectedDevicesID.begin(), _connectedDevicesID.end(), client->id()), _connectedDevicesID.end());
-        this->handle(client->id(), T_DISCONNECTED);
+        this->handle(WSHM_CONNECTED, client->id(), nullptr);
     }
     else if (type == WS_EVT_DATA) // RECEIVED DATA
     {
@@ -191,11 +193,12 @@ void DeviceSocket::webSocketServerEvent(AsyncWebSocket *server, AsyncWebSocketCl
         if (info->final && info->index == 0 && info->len == length && info->opcode == WS_BINARY)
         {
             SocketDataMessage *data = new SocketDataMessage{payload[0], payload + 1, length - 1};
-            this->handle(client->id(), T_BIN_MASSAGE, data);
+            this->handle(WSHM_BIN, client->id(), data);
         }
     }
     else if (type == WS_EVT_ERROR)
     {
+        this->handle(WSHE_ERROR);
         Serial.println("Error in communication!");
     }
 }
