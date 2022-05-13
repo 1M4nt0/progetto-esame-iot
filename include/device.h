@@ -20,6 +20,11 @@ public:
     void loop();
     DeviceSocket *socket();
     bool isHost();
+    void sendSwitchLightOn();
+    void sendSwitchLightOn(uint8_t deviceID);
+    void sendSwitchLightOff();
+    void sendSwitchLightOff(uint8_t deviceID);
+    bool isButtonPressed();
 
 private:
     uint8_t _deviceID;

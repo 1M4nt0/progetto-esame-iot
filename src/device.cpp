@@ -45,6 +45,11 @@ void Device::setLight(bool on)
     digitalWrite(LED_PIN, (on) ? HIGH : LOW);
 }
 
+bool Device::isButtonPressed()
+{
+    return this->_buttonPressed;
+}
+
 void Device::loop()
 {
     ArduinoOTA.handle();
@@ -83,11 +88,28 @@ void Device::setDefaultHandlers()
             break;
         case C_DEVICE_ID:
         {
-            if(!this->socket()->isHost()){
+            if(!this->isHost()){
                 this->_deviceID = message->payload[0];
             }
         }     
         default:
             break;
         }; });
+}
+
+void Device::sendSwitchLightOn()
+{
+    this->socket()->sendMessageAll(C_LIGHTS_ON);
+}
+void Device::sendSwitchLightOn(uint8_t deviceID)
+{
+    this->socket()->sendMessage(deviceID, C_LIGHTS_ON);
+}
+void Device::sendSwitchLightOff()
+{
+    this->socket()->sendMessageAll(C_LIGHTS_OFF);
+}
+void Device::sendSwitchLightOff(uint8_t deviceID)
+{
+    this->socket()->sendMessage(deviceID, C_LIGHTS_OFF);
 }

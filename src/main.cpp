@@ -15,4 +15,8 @@ void setup()
 void loop()
 {
   device->loop();
+  if (device->isButtonPressed())
+  {
+    Serial.println("Bottone premuto!");
+  }
 }
