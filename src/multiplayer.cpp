@@ -5,6 +5,7 @@ Multiplayer::Multiplayer(Device *device) : Game(device)
     if (this->device->isHost())
     {
         this->_initPlayerIDMap();
+        this->_playerID = 1;
         this->device->socket()->on(WSHM_CONNECTED, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
                                    { _addPlayer(from); });
         this->device->socket()->on(WSHM_DISCONNECTED, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
@@ -32,6 +33,12 @@ Multiplayer::Multiplayer(Device *device) : Game(device)
                 this->_manageWinnerTime(playerID, time);
             }
         }
+        case C_WINNER:
+        {
+            if(!this->device->isHost()){
+                this->_displayResults(message->payload[0] == this->_playerID);
+            }
+        }
         default:
             break;
         }; });
@@ -43,6 +50,7 @@ void Multiplayer::loop()
     {
         this->end();
         delay(random(2000, 8000));
+        this->initalize();
         this->start();
     }
     if (this->device->isLightOn())
@@ -59,6 +67,7 @@ void Multiplayer::initalize()
     Winner.id = 0;
     Winner.time = SHRT_MAX;
     this->_playerButtonPressDelay.clear();
+    drawDashboard(this->_playerID, this->getPlayerPoints(this->_playerID));
 }
 
 void Multiplayer::start()
@@ -66,6 +75,7 @@ void Multiplayer::start()
     this->device->sendSwitchLightOn();
     this->_matchStartTime = millis();
     this->device->setLightOn(true);
+    this->_lightOnTime = millis();
 }
 
 void Multiplayer::end()
@@ -75,7 +85,9 @@ void Multiplayer::end()
     if (Winner.id > 0)
     {
         this->sendWinner(Winner.id);
-        // checkResults(Winner.id);
+        this->incrementPlayerPoints(Winner.id, 1);
+        this->_displayResults(Winner.id == this->_playerID);
+        Serial.println(Winner.id);
     }
 }
 
@@ -157,4 +169,17 @@ void Multiplayer::_manageWinnerTime(uint8_t playerID, unsigned short buttonPress
 void Multiplayer::onLightOn()
 {
     this->_lightOnTime = millis();
+    drawDashboard(this->_playerID, 99);
+}
+
+void Multiplayer::_displayResults(bool isWinner)
+{
+    if (isWinner)
+    {
+        drawToScreen("Hai vinto!");
+    }
+    else
+    {
+        drawToScreen("Hai perso!");
+    }
 }

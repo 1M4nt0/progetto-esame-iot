@@ -20,6 +20,7 @@ private:
     uint8_t _getPlayerID() { return this->_playerID; };
     void _setPlayerID(uint8_t playerID) { this->_playerID = playerID; };
     void _initPlayerIDMap();
+    void _displayResults(bool isWinner);
     std::map<uint8_t, uint8_t> _playerDevice;
     unsigned long _matchStartTime;
     unsigned long _lightOnTime;

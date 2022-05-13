@@ -1,8 +1,9 @@
 #include <device.h>
-#include <messageCodes.h>
 
 Device::Device()
 {
+    initDisplay();
+    drawToScreen("Avvio...");
     pinMode(BUTTON_PIN, INPUT);
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, LOW);
@@ -11,7 +12,7 @@ Device::Device()
     this->setDefaultHandlers();
     if (this->isHost())
     {
-        this->_deviceID = 1;
+        this->_deviceID = 0;
     }
 }
 

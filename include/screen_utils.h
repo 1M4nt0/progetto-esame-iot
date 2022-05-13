@@ -1,5 +1,5 @@
 #pragma once
-#include "board_conf.h"
+#include <board_conf.h>
 
 void initDisplay();
 void drawDashboard(int playerid, int points);

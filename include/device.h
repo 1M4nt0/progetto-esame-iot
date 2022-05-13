@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <ArduinoOTA.h>
 #include <deviceSocket.h>
+#include <screen_utils.h>
+#include <messageCodes.h>
 
 #define BUTTON_PIN 16
 #define LED_PIN 17

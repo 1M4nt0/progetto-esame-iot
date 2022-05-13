@@ -4,6 +4,14 @@
 Device *device;
 Game *game;
 
+void delayNB(unsigned long delayTime)
+{
+  unsigned long endDelay = millis() + delayTime;
+  while (millis() < endDelay)
+    ;
+  return;
+}
+
 void setup()
 {
   Serial.begin(115200);
@@ -12,8 +20,8 @@ void setup()
   device = new Device();
   game = new Multiplayer(device);
   game->initalize();
-  game->start();
   Serial.println("Ready!");
+  game->start();
 }
 
 void loop()
