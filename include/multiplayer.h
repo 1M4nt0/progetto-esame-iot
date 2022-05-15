@@ -1,7 +1,7 @@
 #pragma once
 #include <game.h>
 
-#define MATCH_DURATION 10000
+#define MATCH_DURATION 5000
 
 class Multiplayer : public Game
 {
@@ -32,6 +32,8 @@ private:
         uint8_t id;
         unsigned short time;
     } Winner;
+    bool _canStart;
+    unsigned long _nextRestartTime;
 
 protected:
     virtual void onLightOn() override;

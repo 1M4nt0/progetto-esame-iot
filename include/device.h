@@ -21,6 +21,7 @@ public:
     void setLightOn(bool on);
     void loop();
     DeviceSocket *socket();
+    AsyncWebServer *webServer();
     bool isHost();
     void sendSwitchLightOn();
     void sendSwitchLightOn(uint8_t deviceID);

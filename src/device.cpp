@@ -70,6 +70,11 @@ DeviceSocket *Device::socket()
     return this->_deviceSocket;
 }
 
+AsyncWebServer *Device::webServer()
+{
+    return this->_deviceSocket->webServer();
+}
+
 void Device::setDefaultHandlers()
 {
     this->_deviceSocket->on(WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)

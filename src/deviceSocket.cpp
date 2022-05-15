@@ -74,6 +74,11 @@ void DeviceSocket::loop()
     }
 }
 
+AsyncWebServer *DeviceSocket::webServer()
+{
+    return this->_server;
+}
+
 void DeviceSocket::sendMessage(uint8_t deviceID, uint8_t messageCode)
 {
     memset(&packetBuffer, messageCode, sizeof(uint8_t));

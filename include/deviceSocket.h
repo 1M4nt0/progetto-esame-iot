@@ -20,6 +20,7 @@ protected:
 
 public:
     DeviceSocket();
+    AsyncWebServer *webServer();
     bool isHost();
     void sendMessage(uint8_t deviceID, uint8_t messageCode);
     void sendMessage(uint8_t deviceID, uint8_t messageCode, uint8_t *payload, int len);

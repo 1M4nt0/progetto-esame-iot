@@ -6,6 +6,8 @@ Multiplayer::Multiplayer(Device *device) : Game(device)
     {
         this->_initPlayerIDMap();
         this->_playerID = 1;
+        this->_canStart = true;
+        this->_nextRestartTime = millis() + 5000; // Due secondo e incomincia il gioco
         this->device->socket()->on(WSHM_CONNECTED, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
                                    { _addPlayer(from); });
         this->device->socket()->on(WSHM_DISCONNECTED, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
@@ -48,12 +50,17 @@ Multiplayer::Multiplayer(Device *device) : Game(device)
 
 void Multiplayer::loop()
 {
-    if (this->device->isHost() && millis() > this->_matchStartTime + MATCH_DURATION)
+    if (this->device->isHost())
     {
-        this->end();
-        delay(random(2000, 8000));
-        this->initalize();
-        this->start();
+        if (this->_canStart && millis() > this->_nextRestartTime)
+        {
+            this->initalize();
+            this->start();
+        }
+        if (millis() > this->_matchStartTime + MATCH_DURATION && this->_canStart == false)
+        {
+            this->end();
+        }
     }
     if (this->device->isLightOn())
     {
@@ -86,6 +93,7 @@ void Multiplayer::start()
         this->_matchStartTime = millis();
         this->device->setLightOn(true);
         this->_lightOnTime = millis();
+        this->_canStart = false;
     }
 }
 
@@ -102,6 +110,8 @@ void Multiplayer::end()
             this->_displayResults(Winner.id == this->_playerID);
             Serial.printf("Vincitore: Giocatore %i\n", Winner.id);
         }
+        this->_nextRestartTime = millis() + random(2000, 8000);
+        this->_canStart = true;
     }
 }
 
