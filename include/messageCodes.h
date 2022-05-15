@@ -1,7 +1,7 @@
-#define C_PLAYER_ID 1
-#define C_LIGHTS_ON 65
-#define C_LIGHTS_OFF 66
-#define C_TIME 4
-#define C_WINNER 5
-#define C_NEW_GAMEMODE 6
-#define C_PAUSE 7
+#define C_PLAYER_ID 65
+#define C_LIGHTS_ON 66
+#define C_LIGHTS_OFF 67
+#define C_TIME 68
+#define C_WINNER 69
+#define C_NEW_GAMEMODE 70
+#define C_PAUSE 71

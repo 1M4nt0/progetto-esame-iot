@@ -21,7 +21,7 @@ Multiplayer::Multiplayer(Device *device) : Game(device)
             {
                 uint8_t playerID = message->payload[0];
                 this->_setPlayerID(playerID);
-                drawDashboard(this->_playerID, 99);
+                drawDashboard(this->_playerID, this->getPlayerPoints(this->_playerID));
             }
         }
         case C_TIME:
@@ -36,7 +36,8 @@ Multiplayer::Multiplayer(Device *device) : Game(device)
         }
         case C_WINNER:
         {
-            if(!this->device->isHost()){
+            if(!this->device->isHost() && this->_playerID > 0){
+                Serial.printf("Payload: %i, player: %i, from %i", message->payload[0], this->_playerID, from);
                 this->_displayResults(message->payload[0] == this->_playerID);
             }
         }
@@ -65,30 +66,42 @@ void Multiplayer::loop()
 
 void Multiplayer::initalize()
 {
-    Winner.id = 0;
-    Winner.time = SHRT_MAX;
-    this->_playerButtonPressDelay.clear();
-    drawDashboard(this->_playerID, this->getPlayerPoints(this->_playerID));
+    if (this->device->isHost())
+    {
+        Winner.id = 0;
+        Winner.time = SHRT_MAX;
+        this->_playerButtonPressDelay.clear();
+    }
+    if (this->_playerID > 0)
+    {
+        drawDashboard(this->_playerID, this->getPlayerPoints(this->_playerID));
+    }
 }
 
 void Multiplayer::start()
 {
-    this->device->sendSwitchLightOn();
-    this->_matchStartTime = millis();
-    this->device->setLightOn(true);
-    this->_lightOnTime = millis();
+    if (this->device->isHost())
+    {
+        this->device->sendSwitchLightOn();
+        this->_matchStartTime = millis();
+        this->device->setLightOn(true);
+        this->_lightOnTime = millis();
+    }
 }
 
 void Multiplayer::end()
 {
-    this->device->sendSwitchLightOff();
-    this->device->setLightOn(false);
-    if (Winner.id > 0)
+    if (this->device->isHost())
     {
-        this->sendWinner(Winner.id);
-        this->incrementPlayerPoints(Winner.id, 1);
-        this->_displayResults(Winner.id == this->_playerID);
-        Serial.println(Winner.id);
+        this->device->sendSwitchLightOff();
+        this->device->setLightOn(false);
+        if (Winner.id > 0)
+        {
+            this->sendWinner(Winner.id);
+            this->incrementPlayerPoints(Winner.id, 1);
+            this->_displayResults(Winner.id == this->_playerID);
+            Serial.printf("Vincitore: Giocatore %i\n", Winner.id);
+        }
     }
 }
 
@@ -141,6 +154,7 @@ void Multiplayer::_deletePlayer(uint8_t deviceID)
         if (_playerDevice[id] == deviceID)
         {
             _playerDevice[id] = 255;
+            _playerPoints[id] == 0;
             Serial.printf("Disconnected device %i with playerID %i\n", deviceID, id);
             break;
         }
@@ -182,6 +196,7 @@ void Multiplayer::_manageWinnerTime(uint8_t playerID, unsigned short buttonPress
 void Multiplayer::onLightOn()
 {
     this->_lightOnTime = millis();
+    drawDashboard(this->_playerID, this->getPlayerPoints(this->_playerID));
 }
 
 void Multiplayer::_displayResults(bool isWinner)

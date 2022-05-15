@@ -8,21 +8,7 @@ DeviceSocket::DeviceSocket()
     SPIFFS.begin(true);
     this->_server = new AsyncWebServer(80);
     this->_server->begin();
-    if (this->_isHost)
-    {
-        this->_socketHost = new AsyncWebSocket("/ws");
-        this->_socketHost->onEvent([&](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
-                                   { webSocketServerEvent(server, client, type, arg, data, len); });
-        _server->addHandler(this->_socketHost);
-    }
-    else
-    {
-        this->_socketClient = new WebSocketsClient();
-        this->_socketClient->begin("192.168.4.1", 80, "/ws");
-        this->_socketClient->onEvent([&](WStype_t type, uint8_t *payload, size_t length)
-                                     { webSocketClientEvent(type, payload, length); });
-        this->_socketClient->setReconnectInterval(5000);
-    }
+    this->_initSocket();
 }
 
 bool DeviceSocket::isHost()
@@ -51,12 +37,32 @@ void DeviceSocket::connectToWifi()
     }
 }
 
+void DeviceSocket::_initSocket()
+{
+    if (this->_isHost)
+    {
+        this->_socketHost = new AsyncWebSocket("/ws");
+        this->_socketHost->onEvent([&](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
+                                   { webSocketServerEvent(server, client, type, arg, data, len); });
+        _server->addHandler(this->_socketHost);
+    }
+    else
+    {
+        this->_socketClient = new WebSocketsClient();
+        this->_socketClient->begin("192.168.4.1", 80, "/ws");
+        this->_socketClient->onEvent([&](WStype_t type, uint8_t *payload, size_t length)
+                                     { webSocketClientEvent(type, payload, length); });
+        this->_socketClient->setReconnectInterval(5000);
+    }
+}
+
 void DeviceSocket::loop()
 {
     if (WiFi.status() != WL_CONNECTED && !this->_isHost)
     {
         delay(random(1000, 10000));
-        connectToWifi();
+        this->connectToWifi();
+        this->_initSocket();
     }
     if (!this->_isHost)
     {

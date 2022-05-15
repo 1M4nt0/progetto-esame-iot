@@ -33,6 +33,7 @@ public:
 private:
     void webSocketClientEvent(WStype_t type, uint8_t *payload, size_t length);
     void webSocketServerEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
+    void _initSocket();
     std::vector<uint8_t> _connectedDevicesID;
     std::list<SocketMessageHandler *> _handlers;
     WebSocketsClient *_socketClient;
