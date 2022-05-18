@@ -41,8 +41,8 @@ Multiplayer::Multiplayer(Device *device) : Game(device)
         }
         case C_WINNER:
         {
-            Serial.println("Eseguito per sbaglio 2");
             if(!this->device->isHost() && this->_playerID > 0){
+                this->incrementPlayerPoints(message->payload[0], 1);
                 this->_displayResults(message->payload[0] == this->_playerID);
             }
             break;
@@ -83,9 +83,6 @@ void Multiplayer::initalize()
         Winner.id = 0;
         Winner.time = SHRT_MAX;
         this->_playerButtonPressDelay.clear();
-    }
-    if (this->_playerID > 0)
-    {
         drawDashboard(this->_playerID, this->getPlayerPoints(this->_playerID));
     }
 }

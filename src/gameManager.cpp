@@ -49,28 +49,20 @@ void GameManager::_initGame(uint8_t gameID)
 
 void GameManager::_setPause(bool isPaused)
 {
-    this->_isPaused = isPaused;
+    this->_game->end();
     if (this->_device->isHost())
     {
-        this->_game->end();
         this->_sendIsPaused(isPaused);
-        if (this->_isPaused)
-        {
-            drawTwoToScreen("Gioco " + String(this->_gameID), "in pausa...");
-        }
-        else
-        {
-            delay(5000);
-            this->_game->initalize();
-            this->_game->start();
-        }
+    }
+    this->_isPaused = isPaused;
+    if (this->_isPaused)
+    {
+        drawTwoToScreen("Gioco " + String(this->_gameID), "in pausa...");
     }
     else
     {
-        if (this->_isPaused)
-        {
-            drawTwoToScreen("Gioco " + String(this->_gameID), "in pausa...");
-        }
+        this->_game->initalize();
+        this->_game->start();
     }
 }
 
