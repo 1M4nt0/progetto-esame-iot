@@ -15,6 +15,7 @@ Multiplayer::Multiplayer(Device *device) : Game(device)
     }
     this->device->socket()->on(WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
                                {
+                                   Serial.printf("Message from: %i\ncode: %i\n\n", from,message->code);
         switch (message->code)
         {
         case C_PLAYER_ID:
@@ -25,6 +26,7 @@ Multiplayer::Multiplayer(Device *device) : Game(device)
                 this->_setPlayerID(playerID);
                 drawDashboard(this->_playerID, this->getPlayerPoints(this->_playerID));
             }
+            break;
         }
         case C_TIME:
         {
@@ -35,14 +37,16 @@ Multiplayer::Multiplayer(Device *device) : Game(device)
                 memcpy(&time, message->payload, sizeof(short));
                 this->_manageWinnerTime(playerID, time);
             }
+            break;
         }
         case C_WINNER:
         {
+            Serial.println("Eseguito per sbaglio 2");
             if(!this->device->isHost() && this->_playerID > 0){
-                Serial.printf("Payload: %i, player: %i, from %i", message->payload[0], this->_playerID, from);
                 this->_displayResults(message->payload[0] == this->_playerID);
             }
-        }
+            break;
+        }   
         default:
             break;
         }; });
@@ -66,6 +70,7 @@ void Multiplayer::loop()
     {
         if (this->device->isButtonPressed())
         {
+
             this->onButtonPressed();
         }
     }

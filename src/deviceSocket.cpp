@@ -43,15 +43,15 @@ void DeviceSocket::_initSocket()
     {
         this->_socketHost = new AsyncWebSocket("/ws");
         this->_socketHost->onEvent([&](AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len)
-                                   { webSocketServerEvent(server, client, type, arg, data, len); });
-        _server->addHandler(this->_socketHost);
+                                   { this->webSocketServerEvent(server, client, type, arg, data, len); });
+        this->_server->addHandler(this->_socketHost);
     }
     else
     {
         this->_socketClient = new WebSocketsClient();
         this->_socketClient->begin("192.168.4.1", 80, "/ws");
         this->_socketClient->onEvent([&](WStype_t type, uint8_t *payload, size_t length)
-                                     { webSocketClientEvent(type, payload, length); });
+                                     { this->webSocketClientEvent(type, payload, length); });
         this->_socketClient->setReconnectInterval(5000);
     }
 }

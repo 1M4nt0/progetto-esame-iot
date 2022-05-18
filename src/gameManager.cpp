@@ -16,6 +16,7 @@ GameManager::GameManager()
                 bool newPause = message->payload[0];
                 this->_setPause(pause);
             }
+            break;
         }
         case C_NEW_GAMEMODE:
         {
@@ -24,6 +25,7 @@ GameManager::GameManager()
                 uint8_t newGameID = message->payload[0];
                 this->_initGame(newGameID);
             }
+            break;
         }
         default:
             break;
@@ -47,18 +49,18 @@ void GameManager::_initGame(uint8_t gameID)
 
 void GameManager::_setPause(bool isPaused)
 {
+    this->_isPaused = isPaused;
     if (this->_device->isHost())
     {
         this->_game->end();
         this->_sendIsPaused(isPaused);
-        this->_isPaused = isPaused;
         if (this->_isPaused)
         {
             drawTwoToScreen("Gioco " + String(this->_gameID), "in pausa...");
         }
         else
         {
-            delay(2000);
+            delay(5000);
             this->_game->initalize();
             this->_game->start();
         }
@@ -100,7 +102,7 @@ void GameManager::_sendChangeGame(uint8_t newGameID)
 
 void GameManager::_initServerEndpoints()
 {
-    this->_device->webServer()->on("/pause", HTTP_GET, [=](AsyncWebServerRequest *request)
+    this->_device->webServer()->on("/pause", HTTP_GET, [&](AsyncWebServerRequest *request)
                                    { 
                 if(request->hasParam("pause")){
                 bool pause = request->getParam("pause")->value().toInt();
@@ -112,7 +114,7 @@ void GameManager::_initServerEndpoints()
                 }}else{
                     request->send(200, "text", String(this->_isPaused));
                 } });
-    this->_device->webServer()->on("/gamemode", HTTP_GET, [=](AsyncWebServerRequest *request)
+    this->_device->webServer()->on("/gamemode", HTTP_GET, [&](AsyncWebServerRequest *request)
                                    { 
                 if(request->hasParam("id")){
                 int newGameID = request->getParam("id")->value().toInt();

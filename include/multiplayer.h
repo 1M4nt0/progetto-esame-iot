@@ -29,8 +29,8 @@ private:
     std::map<uint8_t, short> _playerButtonPressDelay;
     struct
     {
-        uint8_t id;
-        unsigned short time;
+        uint8_t id = 0;
+        unsigned short time = SHRT_MAX;
     } Winner;
     bool _canStart;
     unsigned long _nextRestartTime;
