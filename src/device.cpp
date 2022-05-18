@@ -14,6 +14,8 @@ Device::Device()
     {
         this->_deviceID = 0;
     }
+    this->socket()->on(WSHE_WIFI_DISCONNECTED, [&](WSH_Event event)
+                       { this->setLightOn(false); });
 }
 
 void Device::initOTA()

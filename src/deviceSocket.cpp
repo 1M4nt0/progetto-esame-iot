@@ -63,6 +63,7 @@ void DeviceSocket::loop()
         delay(random(1000, 10000));
         this->connectToWifi();
         this->_initSocket();
+        this->handle(WSHE_WIFI_DISCONNECTED);
     }
     if (!this->_isHost)
     {

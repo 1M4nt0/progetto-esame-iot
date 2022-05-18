@@ -30,6 +30,8 @@ GameManager::GameManager()
         default:
             break;
         }; });
+    this->_device->socket()->on(WSHE_WIFI_DISCONNECTED, [&](WSH_Event event)
+                                { this->_initGame(this->_gameID); });
 }
 
 void GameManager::_initGame(uint8_t gameID)
