@@ -197,14 +197,18 @@ void DeviceSocket::webSocketServerEvent(AsyncWebSocket *server, AsyncWebSocketCl
         }
         else
         {
+            uint8_t null_uint = 0;
+            SocketDataMessage *data = new SocketDataMessage{null_uint, &null_uint, 0};
             _connectedDevicesID.push_back(client->id());
-            this->handle(WSHM_CONNECTED, client->id(), nullptr);
+            this->handle(WSHM_CONNECTED, client->id(), data);
         }
     }
     else if (type == WS_EVT_DISCONNECT) // CLIENT DISCONNECTED
     {
+        uint8_t null_uint = 0;
+        SocketDataMessage *data = new SocketDataMessage{null_uint, &null_uint, 0};
         _connectedDevicesID.erase(remove(_connectedDevicesID.begin(), _connectedDevicesID.end(), client->id()), _connectedDevicesID.end());
-        this->handle(WSHM_DISCONNECTED, client->id(), nullptr);
+        this->handle(WSHM_DISCONNECTED, client->id(), data);
     }
     else if (type == WS_EVT_DATA) // RECEIVED DATA
     {

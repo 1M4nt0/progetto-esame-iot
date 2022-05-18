@@ -5,3 +5,4 @@
 #define C_WINNER 69
 #define C_NEW_GAMEMODE 70
 #define C_PAUSE 71
+#define C_READY_TO_PLAY 72

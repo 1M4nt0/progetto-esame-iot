@@ -3,8 +3,11 @@
 GameManager::GameManager()
 {
     this->_device = new Device();
-    this->_initGame(0);
-    this->_initServerEndpoints();
+    if (this->_device->isHost())
+    {
+        this->_initGame(0);
+        this->_initServerEndpoints();
+    }
     this->_device->socket()->on(WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
                                 {
         switch (message->code)
@@ -20,10 +23,8 @@ GameManager::GameManager()
         }
         case C_NEW_GAMEMODE:
         {
-            if (this->_device->isHost())
-            {
-                uint8_t newGameID = message->payload[0];
-                this->_initGame(newGameID);
+            if (!this->_device->isHost()){
+                this->_initGame(message->payload[0]);
             }
             break;
         }
@@ -32,11 +33,13 @@ GameManager::GameManager()
         }; });
     this->_device->socket()->on(WSHE_WIFI_DISCONNECTED, [&](WSH_Event event)
                                 { this->_initGame(this->_gameID); });
+    this->_device->socket()->on(WSHM_CONNECTED, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
+                                { this->_sendChangeGame(from, this->_gameID); });
 }
 
 void GameManager::_initGame(uint8_t gameID)
 {
-    drawToScreen("Cambio gioco...");
+    drawToScreen("Avvio gioco...");
     if (gameID == 0)
     {
         _game = new Multiplayer(this->_device);
@@ -47,6 +50,10 @@ void GameManager::_initGame(uint8_t gameID)
     }
     this->_gameID = gameID;
     this->_setPause(false);
+    if (!this->_device->isHost())
+    {
+        this->_sendIsReadyToHost();
+    }
 }
 
 void GameManager::_setPause(bool isPaused)
@@ -86,11 +93,24 @@ void GameManager::_sendIsPaused(bool isPaused)
     }
 }
 
+void GameManager::_sendIsReadyToHost()
+{
+    this->_device->socket()->sendMessage(0, C_READY_TO_PLAY);
+}
+
 void GameManager::_sendChangeGame(uint8_t newGameID)
 {
     if (this->_device->isHost())
     {
-        this->_device->socket()->sendMessageAll(C_PAUSE, &newGameID, sizeof(uint8_t));
+        this->_device->socket()->sendMessageAll(C_NEW_GAMEMODE, &newGameID, sizeof(uint8_t));
+    }
+}
+
+void GameManager::_sendChangeGame(uint8_t deviceID, uint8_t newGameID)
+{
+    if (this->_device->isHost())
+    {
+        this->_device->socket()->sendMessage(deviceID, C_NEW_GAMEMODE, &newGameID, sizeof(uint8_t));
     }
 }
 
