@@ -10,11 +10,13 @@
 #define WIFI_SSID "IoTGame"
 #define WIFI_PASSWORD "testpassword"
 #define MAX_CONNECTED_DEVICES 7
+#define WIFICONNECTIONRECHECKDELAY 2000
 
 class DeviceSocket
 {
 protected:
     void handle(WSH_Event event);
+    void handle(WSH_Event event, uint8_t from);
     void handle(WSH_Message messageType, uint8_t from, SocketDataMessage *message);
     void handleNewDeviceConnected(uint8_t deviceID);
 
@@ -28,6 +30,7 @@ public:
     void sendMessageAll(uint8_t messageCode, uint8_t *payload, int len);
     std::vector<uint8_t> getConnectedDevicesIDVector() { return _connectedDevicesID; };
     void on(WSH_Event event, SocketEventCallback onEvent);
+    void on(WSH_Event event, SocketEventFromCallback onEvent);
     void on(WSH_Message messageType, SocketMessageCallback onMessage);
     void loop();
 
@@ -42,4 +45,5 @@ private:
     AsyncWebServer *_server;
     bool _isHost;
     void connectToWifi();
+    long _WifiConnectionRecheckTime;
 };

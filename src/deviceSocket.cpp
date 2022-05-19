@@ -9,6 +9,7 @@ DeviceSocket::DeviceSocket()
     this->_server = new AsyncWebServer(80);
     this->_server->begin();
     this->_initSocket();
+    this->_WifiConnectionRecheckTime = millis() + WIFICONNECTIONRECHECKDELAY;
 }
 
 bool DeviceSocket::isHost()
@@ -58,12 +59,16 @@ void DeviceSocket::_initSocket()
 
 void DeviceSocket::loop()
 {
-    if (WiFi.status() != WL_CONNECTED && !this->_isHost)
+    if (millis() > this->_WifiConnectionRecheckTime && !this->_isHost)
     {
-        delay(random(1000, 10000));
-        this->connectToWifi();
-        this->_initSocket();
-        this->handle(WSHE_WIFI_DISCONNECTED);
+        this->_WifiConnectionRecheckTime += WIFICONNECTIONRECHECKDELAY;
+        if (WiFi.status() != WL_CONNECTED)
+        {
+            delay(random(1000, 10000));
+            this->connectToWifi();
+            this->_initSocket();
+            this->handle(WSHE_WIFI_DISCONNECTED);
+        }
     }
     if (!this->_isHost)
     {
@@ -83,13 +88,13 @@ AsyncWebServer *DeviceSocket::webServer()
 void DeviceSocket::sendMessage(uint8_t deviceID, uint8_t messageCode)
 {
     memset(&packetBuffer, messageCode, sizeof(uint8_t));
-    if (deviceID == 0)
+    if (this->_isHost)
     {
-        this->_socketClient->sendBIN(packetBuffer, sizeof(uint8_t));
+        this->_socketHost->binary(deviceID, packetBuffer, sizeof(uint8_t));
     }
     else
     {
-        this->_socketHost->binary(deviceID, packetBuffer, sizeof(uint8_t));
+        this->_socketClient->sendBIN(packetBuffer, sizeof(uint8_t));
     }
 }
 
@@ -97,13 +102,13 @@ void DeviceSocket::sendMessage(uint8_t deviceID, uint8_t messageCode, uint8_t *p
 {
     memset(packetBuffer, messageCode, sizeof(uint8_t));
     memcpy(packetBuffer + 1, payload, len);
-    if (deviceID == 0)
+    if (this->_isHost)
     {
-        this->_socketClient->sendBIN(packetBuffer, sizeof(uint8_t) + len);
+        this->_socketHost->binary(deviceID, packetBuffer, sizeof(uint8_t) + len);
     }
     else
     {
-        this->_socketHost->binary(deviceID, packetBuffer, sizeof(uint8_t) + len);
+        this->_socketClient->sendBIN(packetBuffer, sizeof(uint8_t) + len);
     }
 }
 
@@ -134,6 +139,14 @@ void DeviceSocket::on(WSH_Event event, SocketEventCallback onEvent)
     _handlers.push_back(handler);
 }
 
+void DeviceSocket::on(WSH_Event event, SocketEventFromCallback onEventFrom)
+{
+    SocketMessageHandler *handler = new SocketMessageHandler();
+    handler->setEventType(event);
+    handler->onEventFrom(onEventFrom);
+    _handlers.push_back(handler);
+}
+
 void DeviceSocket::on(WSH_Message messageType, SocketMessageCallback onMessage)
 {
     SocketMessageHandler *handler = new SocketMessageHandler();
@@ -154,6 +167,17 @@ void DeviceSocket::handle(WSH_Event event)
     }
 }
 
+void DeviceSocket::handle(WSH_Event event, uint8_t from)
+{
+    for (SocketMessageHandler *handler : _handlers)
+    {
+        if (handler->getEventType() == event)
+        {
+            handler->handle(event, from);
+        }
+    }
+}
+
 void DeviceSocket::handle(WSH_Message messageType, uint8_t from, SocketDataMessage *message)
 {
     for (SocketMessageHandler *handler : _handlers)
@@ -169,11 +193,11 @@ void DeviceSocket::webSocketClientEvent(WStype_t type, uint8_t *payload, size_t 
 {
     if (type == WStype_DISCONNECTED)
     {
-        this->handle(WSHE_SOCKET_DISCONNECTED);
+        this->handle(WSHE_SOCKET_DISCONNECTED, 0);
     }
     else if (type == WStype_CONNECTED)
     {
-        this->handle(WSHE_SOCKET_CONNECTED);
+        this->handle(WSHE_SOCKET_CONNECTED, 0);
     }
     else if (type == WStype_BIN)
     {
@@ -182,7 +206,7 @@ void DeviceSocket::webSocketClientEvent(WStype_t type, uint8_t *payload, size_t 
     }
     else if (type == WStype_ERROR)
     {
-        this->handle(WSHE_ERROR);
+        this->handle(WSHE_ERROR, 0);
         Serial.println("Error in communication!s");
     }
 }
@@ -197,18 +221,14 @@ void DeviceSocket::webSocketServerEvent(AsyncWebSocket *server, AsyncWebSocketCl
         }
         else
         {
-            uint8_t null_uint = 0;
-            SocketDataMessage *data = new SocketDataMessage{null_uint, &null_uint, 0};
             _connectedDevicesID.push_back(client->id());
-            this->handle(WSHM_CONNECTED, client->id(), data);
+            this->handle(WSHE_SOCKET_CONNECTED, client->id());
         }
     }
     else if (type == WS_EVT_DISCONNECT) // CLIENT DISCONNECTED
     {
-        uint8_t null_uint = 0;
-        SocketDataMessage *data = new SocketDataMessage{null_uint, &null_uint, 0};
         _connectedDevicesID.erase(remove(_connectedDevicesID.begin(), _connectedDevicesID.end(), client->id()), _connectedDevicesID.end());
-        this->handle(WSHM_DISCONNECTED, client->id(), data);
+        this->handle(WSHE_SOCKET_DISCONNECTED, client->id());
     }
     else if (type == WS_EVT_DATA) // RECEIVED DATA
     {
@@ -221,7 +241,7 @@ void DeviceSocket::webSocketServerEvent(AsyncWebSocket *server, AsyncWebSocketCl
     }
     else if (type == WS_EVT_ERROR)
     {
-        this->handle(WSHE_ERROR);
+        this->handle(WSHE_ERROR, client->id());
         Serial.println("Error in communication!");
     }
 }

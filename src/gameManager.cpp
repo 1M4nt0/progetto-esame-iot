@@ -33,7 +33,7 @@ GameManager::GameManager()
         }; });
     this->_device->socket()->on(WSHE_WIFI_DISCONNECTED, [&](WSH_Event event)
                                 { this->_initGame(this->_gameID); });
-    this->_device->socket()->on(WSHM_CONNECTED, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
+    this->_device->socket()->on(WSHE_SOCKET_CONNECTED, [&](WSH_Event event, uint8_t from)
                                 { this->_sendChangeGame(from, this->_gameID); });
 }
 

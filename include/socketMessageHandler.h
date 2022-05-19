@@ -28,6 +28,7 @@ typedef struct
 } SocketDataMessage;
 
 typedef std::function<void(WSH_Event event)> SocketEventCallback;
+typedef std::function<void(WSH_Event event, uint8_t from)> SocketEventFromCallback;
 typedef std::function<void(WSH_Message msgType, uint8_t from, SocketDataMessage *message)> SocketMessageCallback;
 
 class SocketMessageHandler
@@ -35,9 +36,11 @@ class SocketMessageHandler
 public:
     void onMessage(SocketMessageCallback fn) { _onMessage = fn; };
     void onEvent(SocketEventCallback fn) { _onEvent = fn; };
+    void onEventFrom(SocketEventFromCallback fn) { _onEventFrom = fn; };
     void setMessageType(WSH_Message messageType) { _messageType = messageType; };
     void setEventType(WSH_Event event) { _eventType = event; };
     void handle(WSH_Event event) { _onEvent(event); };
+    void handle(WSH_Event event, uint8_t from) { _onEventFrom(event, from); };
     void handle(WSH_Message msgType, uint8_t from, SocketDataMessage *message) { _onMessage(msgType, from, message); };
     WSH_Message getMessageType() { return _messageType; };
     WSH_Event getEventType() { return _eventType; };
@@ -46,5 +49,6 @@ private:
     WSH_Event _eventType;
     WSH_Message _messageType;
     SocketEventCallback _onEvent;
+    SocketEventFromCallback _onEventFrom;
     SocketMessageCallback _onMessage;
 };

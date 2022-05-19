@@ -8,7 +8,7 @@ Multiplayer::Multiplayer(Device *device) : Game(device)
         this->_playerID = 1;
         this->_canStart = true;
         this->_nextRestartTime = millis() + 5000; // Due secondo e incomincia il gioco
-        this->device->socket()->on(WSHM_DISCONNECTED, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
+        this->device->socket()->on(WSHE_SOCKET_DISCONNECTED, [&](WSH_Event event, uint8_t from)
                                    { this->_deletePlayer(from); });
     }
     this->device->socket()->on(WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
@@ -22,7 +22,6 @@ Multiplayer::Multiplayer(Device *device) : Game(device)
             {
                 uint8_t playerID = message->payload[0];
                 this->_setPlayerID(playerID);
-                Serial.printf("Player ID: %i", playerID);
                 drawDashboard(this->_playerID, this->getPlayerPoints(this->_playerID));
             }
             break;
@@ -48,7 +47,9 @@ Multiplayer::Multiplayer(Device *device) : Game(device)
         }
         case C_READY_TO_PLAY:
         {
-            this->_addPlayer(from);
+            if(this->device->isHost()){
+                this->_addPlayer(from);
+            }
         }  
         default:
             break;
