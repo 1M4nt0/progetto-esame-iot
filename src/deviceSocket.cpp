@@ -88,7 +88,7 @@ AsyncWebServer *DeviceSocket::webServer()
 void DeviceSocket::sendMessage(uint8_t deviceID, uint8_t messageCode)
 {
     memset(&packetBuffer, messageCode, sizeof(uint8_t));
-    if (this->_isHost)
+    if (deviceID == 0)
     {
         this->_socketHost->binary(deviceID, packetBuffer, sizeof(uint8_t));
     }
@@ -102,7 +102,7 @@ void DeviceSocket::sendMessage(uint8_t deviceID, uint8_t messageCode, uint8_t *p
 {
     memset(packetBuffer, messageCode, sizeof(uint8_t));
     memcpy(packetBuffer + 1, payload, len);
-    if (this->_isHost)
+    if (deviceID == 0)
     {
         this->_socketHost->binary(deviceID, packetBuffer, sizeof(uint8_t) + len);
     }
