@@ -140,6 +140,10 @@ void MultiplayerHost::_addPlayer(uint8_t deviceID)
 {
     for (uint8_t id = 1; id <= MAX_PLAYERS; id++)
     {
+        if (_playerDevice[id] == deviceID)
+        {
+            break;
+        }
         if (_playerDevice[id] == 255)
         {
             _playerDevice[id] = deviceID;
