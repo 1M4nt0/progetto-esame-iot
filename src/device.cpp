@@ -7,7 +7,7 @@ Device::Device()
     pinMode(BUTTON_PIN, INPUT);
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, LOW);
-    this->_deviceSocket = new DeviceSocket();
+    this->connectToWifi();
     initOTA();
     this->setDefaultHandlers();
     if (this->isHost())
@@ -16,6 +16,29 @@ Device::Device()
     }
     this->socket()->on(WSHE_WIFI_DISCONNECTED, [&](WSH_Event event)
                        { this->setLightOn(false); });
+}
+
+void Device::connectToWifi()
+{
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD, 7);
+    int status = WiFi.status();
+    while (status != WL_CONNECTED && status != WL_NO_SSID_AVAIL)
+    {
+        delay(2000);
+        status = WiFi.status();
+    }
+    if (status == WL_NO_SSID_AVAIL)
+    {
+        WiFi.mode(WIFI_MODE_AP);
+        WiFi.softAP(WIFI_SSID, WIFI_PASSWORD, 7, 0);
+        this->_isHost = true;
+        this->_deviceSocket = new SocketHost();
+    }
+    else
+    {
+        this->_isHost = false;
+        this->_deviceSocket = new SocketClient();
+    }
 }
 
 void Device::initOTA()
@@ -62,11 +85,6 @@ void Device::loop()
     }
 }
 
-bool Device::isHost()
-{
-    return this->_deviceSocket->isHost();
-}
-
 DeviceSocket *Device::socket()
 {
     return this->_deviceSocket;
@@ -92,21 +110,4 @@ void Device::setDefaultHandlers()
         default:
             break;
         }; });
-}
-
-void Device::sendSwitchLightOn()
-{
-    this->socket()->sendMessageAll(C_LIGHTS_ON);
-}
-void Device::sendSwitchLightOn(uint8_t deviceID)
-{
-    this->socket()->sendMessage(deviceID, C_LIGHTS_ON);
-}
-void Device::sendSwitchLightOff()
-{
-    this->socket()->sendMessageAll(C_LIGHTS_OFF);
-}
-void Device::sendSwitchLightOff(uint8_t deviceID)
-{
-    this->socket()->sendMessage(deviceID, C_LIGHTS_OFF);
 }

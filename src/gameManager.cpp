@@ -33,8 +33,11 @@ GameManager::GameManager()
         }; });
     this->_device->socket()->on(WSHE_WIFI_DISCONNECTED, [&](WSH_Event event)
                                 { this->_initGame(this->_gameID); });
-    this->_device->socket()->on(WSHE_SOCKET_CONNECTED, [&](WSH_Event event, uint8_t from)
-                                { this->_sendChangeGame(from, this->_gameID); });
+    if (this->_device->isHost())
+    {
+        this->_device->socket()->on(WSHE_SOCKET_CONNECTED, [&](WSH_Event event, uint8_t from)
+                                    { this->_sendChangeGame(from, this->_gameID); });
+    }
 }
 
 void GameManager::_initGame(uint8_t gameID)
@@ -42,11 +45,25 @@ void GameManager::_initGame(uint8_t gameID)
     drawToScreen("Avvio gioco...");
     if (gameID == 0)
     {
-        _game = new Multiplayer(this->_device);
+        if (this->_device->isHost())
+        {
+            this->_game = new MultiplayerHost(this->_device);
+        }
+        else
+        {
+            this->_game = new MultiplayerClient(this->_device);
+        }
     }
     else
     {
-        _game = new Multiplayer(this->_device);
+        if (this->_device->isHost())
+        {
+            this->_game = new MultiplayerHost(this->_device);
+        }
+        else
+        {
+            this->_game = new MultiplayerClient(this->_device);
+        }
     }
     this->_gameID = gameID;
     this->_setPause(false);
@@ -100,18 +117,12 @@ void GameManager::_sendIsReadyToHost()
 
 void GameManager::_sendChangeGame(uint8_t newGameID)
 {
-    if (this->_device->isHost())
-    {
-        this->_device->socket()->sendMessageAll(C_NEW_GAMEMODE, &newGameID, sizeof(uint8_t));
-    }
+    this->_device->socket()->sendMessageAll(C_NEW_GAMEMODE, &newGameID, sizeof(uint8_t));
 }
 
 void GameManager::_sendChangeGame(uint8_t deviceID, uint8_t newGameID)
 {
-    if (this->_device->isHost())
-    {
-        this->_device->socket()->sendMessage(deviceID, C_NEW_GAMEMODE, &newGameID, sizeof(uint8_t));
-    }
+    this->_device->socket()->sendMessage(deviceID, C_NEW_GAMEMODE, &newGameID, sizeof(uint8_t));
 }
 
 void GameManager::_initServerEndpoints()
@@ -126,7 +137,11 @@ void GameManager::_initServerEndpoints()
                 }else{
                     request->send(200, "text", "NOT OK!");
                 }}else{
-                    request->send(200, "text", String(this->_isPaused));
+                    AsyncJsonResponse* response = new AsyncJsonResponse();
+                    const JsonObject& jsonData = response->getRoot();
+                    jsonData["pause"] = this->_isPaused;
+                    response->setLength();
+                    request->send(response);
                 } });
     this->_device->webServer()->on("/gamemode", HTTP_GET, [&](AsyncWebServerRequest *request)
                                    { 
@@ -138,8 +153,12 @@ void GameManager::_initServerEndpoints()
                     this->_sendChangeGame(newGameID);
                     this->_initGame(newGameID);                   
                 }else{
-                    request->send(200, "text", "NOT OK!");
+                    request->send(403, "text", "NOT OK!");
                 }}else{
-                    request->send(200, "text", String(this->_gameID));
+                    AsyncJsonResponse* response = new AsyncJsonResponse();
+                    const JsonObject& jsonData = response->getRoot();
+                    jsonData["gamemode"] = this->_gameID;
+                    response->setLength();
+                    request->send(response);
                 } });
 }

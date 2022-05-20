@@ -1,5 +1,4 @@
 #pragma once
-#include "WiFi.h"
 #include <ESPAsyncWebServer.h>
 #include <WebSocketsClient.h>
 #include <socketMessageHandler.h>
@@ -18,32 +17,22 @@ protected:
     void handle(WSH_Event event);
     void handle(WSH_Event event, uint8_t from);
     void handle(WSH_Message messageType, uint8_t from, SocketDataMessage *message);
-    void handleNewDeviceConnected(uint8_t deviceID);
+    virtual void _initSocket() = 0;
+    std::vector<uint8_t> _connectedDevicesID;
+    std::list<SocketMessageHandler *> _handlers;
+    AsyncWebServer *_server;
 
 public:
-    DeviceSocket();
-    AsyncWebServer *webServer();
-    bool isHost();
-    void sendMessage(uint8_t deviceID, uint8_t messageCode);
-    void sendMessage(uint8_t deviceID, uint8_t messageCode, uint8_t *payload, int len);
-    void sendMessageAll(uint8_t messageCode);
-    void sendMessageAll(uint8_t messageCode, uint8_t *payload, int len);
+    AsyncWebServer *webServer() { return this->_server; };
+    virtual void sendMessage(uint8_t deviceID, uint8_t messageCode) = 0;
+    virtual void sendMessage(uint8_t deviceID, uint8_t messageCode, uint8_t *payload, int len) = 0;
+    virtual void sendMessageAll(uint8_t messageCode) = 0;
+    virtual void sendMessageAll(uint8_t messageCode, uint8_t *payload, int len) = 0;
     std::vector<uint8_t> getConnectedDevicesIDVector() { return _connectedDevicesID; };
     void on(WSH_Event event, SocketEventCallback onEvent);
     void on(WSH_Event event, SocketEventFromCallback onEvent);
     void on(WSH_Message messageType, SocketMessageCallback onMessage);
-    void loop();
+    virtual void loop() = 0;
 
 private:
-    void webSocketClientEvent(WStype_t type, uint8_t *payload, size_t length);
-    void webSocketServerEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len);
-    void _initSocket();
-    std::vector<uint8_t> _connectedDevicesID;
-    std::list<SocketMessageHandler *> _handlers;
-    WebSocketsClient *_socketClient;
-    AsyncWebSocket *_socketHost;
-    AsyncWebServer *_server;
-    bool _isHost;
-    void connectToWifi();
-    long _WifiConnectionRecheckTime;
 };

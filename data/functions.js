@@ -35,4 +35,4 @@ setInterval(function() {
     };
     xhttp.open("GET", "/points", true);
     xhttp.send();
-}, 2000);
+}, 1000);

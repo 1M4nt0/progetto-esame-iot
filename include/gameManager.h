@@ -1,6 +1,7 @@
 #pragma once
 #include <device.h>
-#include <multiplayer.h>
+#include <multiplayerHost.h>
+#include <multiplayerClient.h>
 
 class GameManager
 {

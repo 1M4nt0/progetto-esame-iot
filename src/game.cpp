@@ -3,7 +3,6 @@
 Game::Game(Device *device)
 {
     this->device = device;
-    // this->configServerEndpoints();
     this->device->socket()->on(WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
                                {
         switch (message->code)

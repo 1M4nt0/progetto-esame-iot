@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <device.h>
 #include <messageCodes.h>
+#include "AsyncJson.h"
+#include <ArduinoJson.h>
 
 #define MAX_PLAYERS 8
 

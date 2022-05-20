@@ -2,9 +2,11 @@
 #include <stdint.h>
 #include <Arduino.h>
 #include <ArduinoOTA.h>
-#include <deviceSocket.h>
 #include <screen_utils.h>
 #include <messageCodes.h>
+#include <socketHost.h>
+#include <socketClient.h>
+#include "WiFi.h"
 
 #define BUTTON_PIN 16
 #define LED_PIN 17
@@ -22,18 +24,16 @@ public:
     void loop();
     DeviceSocket *socket();
     AsyncWebServer *webServer();
-    bool isHost();
-    void sendSwitchLightOn();
-    void sendSwitchLightOn(uint8_t deviceID);
-    void sendSwitchLightOff();
-    void sendSwitchLightOff(uint8_t deviceID);
+    bool isHost() { return this->_isHost; };
     bool isButtonPressed() { return this->_buttonPressed; };
     bool isLightOn() { return this->_lightON; };
+    void connectToWifi();
 
 private:
     uint8_t _deviceID;
     bool _lightON;
     bool _buttonPressed;
+    bool _isHost;
     DeviceSocket *_deviceSocket;
     void initOTA();
 };
