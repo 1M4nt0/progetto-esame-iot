@@ -3,6 +3,7 @@
 GameManager::GameManager()
 {
     this->_device = new Device();
+    this->_game = nullptr;
     if (this->_device->isHost())
     {
         this->_initGame(0);
@@ -43,6 +44,7 @@ GameManager::GameManager()
 void GameManager::_initGame(uint8_t gameID)
 {
     drawToScreen("Avvio gioco...");
+    delete this->_game;
     if (gameID == 0)
     {
         if (this->_device->isHost())

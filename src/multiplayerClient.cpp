@@ -9,20 +9,15 @@ MultiplayerClient::MultiplayerClient(Device *device) : Game(device)
         {
         case C_PLAYER_ID:
         {
-            if (!this->device->isHost())
-            {
-                uint8_t playerID = message->payload[0];
-                this->_setPlayerID(playerID);
-                drawDashboard(this->_playerID, this->getPlayerPoints(this->_playerID));
-            }
+            uint8_t playerID = message->payload[0];
+            this->_setPlayerID(playerID);
+            drawDashboard(this->_playerID, this->getPlayerPoints(this->_playerID));
             break;
         }
         case C_WINNER:
         {
-            if(!this->device->isHost() && this->_playerID > 0){
-                this->incrementPlayerPoints(message->payload[0], 1);
-                this->_displayResults(message->payload[0] == this->_playerID);
-            }
+            this->incrementPlayerPoints(message->payload[0], 1);
+            this->_displayResults(message->payload[0] == this->_playerID);
             break;
         }
         default:

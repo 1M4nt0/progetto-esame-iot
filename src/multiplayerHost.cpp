@@ -25,6 +25,7 @@ MultiplayerHost::MultiplayerHost(Device *device) : Game(device)
         case C_READY_TO_PLAY:
         {
             this->_addPlayer(from);
+            break;
         }  
         default:
             break;
@@ -38,7 +39,6 @@ MultiplayerHost::MultiplayerHost(Device *device) : Game(device)
     this->device->webServer()->on("/points", HTTP_GET, [&](AsyncWebServerRequest *request)
                                   { 
               AsyncJsonResponse* response = new AsyncJsonResponse();
-              response->addHeader("Server","ESP Async Web Server");
               const JsonObject& jsonData = response->getRoot();
               int index = 0;
               for (auto player = this->_playerDevice.begin(); player != this->_playerDevice.end(); player++)
