@@ -11,11 +11,11 @@
 class Game
 {
 public:
+    Game(Device *device);
     virtual void loop() = 0;
     virtual void start() = 0;
     virtual void initalize() = 0;
     virtual void end() = 0;
-    Game(Device *device);
 
 protected:
     virtual void onLightOn() = 0;
@@ -24,7 +24,7 @@ protected:
     virtual void onDeviceDisconnected() = 0;
     virtual void configServerEndpoints() = 0;
     virtual void onButtonPressed() = 0;
-    Device *device;
+    Device *device{nullptr};
     std::map<uint8_t, int> _playerPoints;
     int getPlayerPoints(uint8_t playerID);
     void incrementPlayerPoints(uint8_t playerID, int increment);

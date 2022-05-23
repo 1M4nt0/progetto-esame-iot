@@ -65,8 +65,11 @@ void MultiplayerClient::onButtonPressed()
 
 void MultiplayerClient::onLightOn()
 {
-    this->_lightOnTime = millis();
-    drawDashboard(this->_playerID, this->getPlayerPoints(this->_playerID));
+    if (this->_playerID > 0)
+    {
+        this->_lightOnTime = millis();
+        drawDashboard(this->_playerID, this->getPlayerPoints(this->_playerID));
+    }
 }
 
 void MultiplayerClient::_displayResults(bool isWinner)

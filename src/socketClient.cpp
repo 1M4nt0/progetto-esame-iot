@@ -1,6 +1,6 @@
 #include <socketClient.h>
 
-SocketClient::SocketClient() : DeviceSocket()
+SocketClient::SocketClient()
 {
     SPIFFS.begin(true);
     this->_server = new AsyncWebServer(80);

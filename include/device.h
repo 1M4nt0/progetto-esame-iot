@@ -34,6 +34,6 @@ private:
     bool _lightON;
     bool _buttonPressed;
     bool _isHost;
-    DeviceSocket *_deviceSocket;
+    DeviceSocket *_deviceSocket{nullptr};
     void initOTA();
 };

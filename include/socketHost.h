@@ -16,5 +16,5 @@ public:
 
 private:
     void _webSocketEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *payload, size_t length);
-    AsyncWebSocket *_socketHost;
+    AsyncWebSocket *_socketHost{nullptr};
 };

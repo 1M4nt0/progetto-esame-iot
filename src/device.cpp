@@ -22,6 +22,10 @@ void Device::connectToWifi()
 {
     WiFi.begin(WIFI_SSID, WIFI_PASSWORD, 7);
     int status = WiFi.status();
+    if (this->_deviceSocket != nullptr)
+    {
+        delete this->_deviceSocket;
+    }
     while (status != WL_CONNECTED && status != WL_NO_SSID_AVAIL)
     {
         delay(2000);

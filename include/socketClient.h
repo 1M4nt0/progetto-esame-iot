@@ -16,5 +16,5 @@ public:
 
 private:
     void _webSocketEvent(WStype_t type, uint8_t *payload, size_t length);
-    WebSocketsClient *_socketClient;
+    WebSocketsClient *_socketClient{nullptr};
 };

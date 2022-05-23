@@ -20,7 +20,7 @@ protected:
     virtual void _initSocket() = 0;
     std::vector<uint8_t> _connectedDevicesID;
     std::list<SocketMessageHandler *> _handlers;
-    AsyncWebServer *_server;
+    AsyncWebServer *_server{nullptr};
 
 public:
     AsyncWebServer *webServer() { return this->_server; };

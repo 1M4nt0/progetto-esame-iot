@@ -6,8 +6,8 @@
 class GameManager
 {
 private:
-    Device *_device;
-    Game *_game;
+    Device *_device{nullptr};
+    Game *_game{nullptr};
     bool _isPaused;
     uint8_t _gameID;
     void _initGame(uint8_t gameID);
