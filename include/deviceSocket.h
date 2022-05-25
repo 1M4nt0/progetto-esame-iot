@@ -23,6 +23,7 @@ protected:
     AsyncWebServer *_server{nullptr};
 
 public:
+    ~DeviceSocket();
     AsyncWebServer *webServer() { return this->_server; };
     virtual void sendMessage(uint8_t deviceID, uint8_t messageCode) = 0;
     virtual void sendMessage(uint8_t deviceID, uint8_t messageCode, uint8_t *payload, int len) = 0;

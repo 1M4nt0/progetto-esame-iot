@@ -41,6 +41,12 @@ GameManager::GameManager()
     }
 }
 
+GameManager::~GameManager()
+{
+    delete this->_game;
+    delete this->_device;
+}
+
 void GameManager::_initGame(uint8_t gameID)
 {
     drawToScreen("Avvio gioco...");
@@ -156,8 +162,8 @@ void GameManager::_initServerEndpoints()
                 if(newGameID != this->_gameID){
                     request->send(200, "text", "OK!");
                     drawToScreen("Cambio gioco...");
-                    this->_sendChangeGame(newGameID);
-                    this->_initGame(newGameID);                   
+                    this->_initGame(newGameID); 
+                    this->_sendChangeGame(newGameID);                
                 }else{
                     request->send(403, "text", "NOT OK!");
                 }}else{

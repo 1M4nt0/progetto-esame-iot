@@ -8,6 +8,11 @@ SocketHost::SocketHost()
     this->_initSocket();
 }
 
+SocketHost::~SocketHost()
+{
+    delete this->_socketHost;
+}
+
 void SocketHost::_initSocket()
 {
     this->_socketHost = new AsyncWebSocket("/ws");

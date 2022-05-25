@@ -8,6 +8,7 @@ protected:
 
 public:
     SocketHost();
+    ~SocketHost();
     void sendMessage(uint8_t deviceID, uint8_t messageCode) override;
     void sendMessage(uint8_t deviceID, uint8_t messageCode, uint8_t *payload, int len) override;
     void sendMessageAll(uint8_t messageCode) override;

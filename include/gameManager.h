@@ -21,5 +21,6 @@ private:
 
 public:
     GameManager();
+    ~GameManager();
     void loop();
 };

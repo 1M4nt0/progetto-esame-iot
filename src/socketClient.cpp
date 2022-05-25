@@ -8,6 +8,11 @@ SocketClient::SocketClient()
     this->_initSocket();
 }
 
+SocketClient::~SocketClient()
+{
+    this->_socketClient;
+}
+
 void SocketClient::_initSocket()
 {
     this->_socketClient = new WebSocketsClient();

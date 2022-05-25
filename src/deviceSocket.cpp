@@ -1,5 +1,14 @@
 #include <deviceSocket.h>
 
+DeviceSocket::~DeviceSocket()
+{
+    delete this->_server;
+    for (auto handler : this->_handlers)
+    {
+        delete handler;
+    }
+}
+
 void DeviceSocket::on(WSH_Event event, SocketEventCallback onEvent)
 {
     SocketMessageHandler *handler = new SocketMessageHandler();
