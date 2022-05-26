@@ -2,7 +2,7 @@
 
 MultiplayerClient::MultiplayerClient(Device *device) : Game(device)
 {
-    this->device->socket()->on(WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
+    this->device->socket()->on(DSM_GAME, WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
                                {
                                    Serial.printf("Message from: %i\ncode: %i\n\n", from,message->code);
         switch (message->code)

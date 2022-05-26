@@ -14,7 +14,7 @@ Device::Device()
     {
         this->_deviceID = 0;
     }
-    this->socket()->on(WSHE_WIFI_DISCONNECTED, [&](WSH_Event event)
+    this->socket()->on(DSM_CORE, WSHE_WIFI_DISCONNECTED, [&](WSH_Event event)
                        { this->setLightOn(false); });
 }
 
@@ -101,7 +101,7 @@ AsyncWebServer *Device::webServer()
 
 void Device::setDefaultHandlers()
 {
-    this->_deviceSocket->on(WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
+    this->_deviceSocket->on(DSM_CORE, WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
                             {
         switch (message->code)
         {

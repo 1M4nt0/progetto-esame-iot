@@ -5,7 +5,7 @@
     <link href="./style.css" rel="stylesheet" type="text/css">
     <script src="functions.js"></script>
     <script type="text/javascript">
-        setGamemode(1);
+        setGamemode(0);
     </script>
 </head>
 
@@ -42,9 +42,9 @@
                 style="padding: 10px;">Torna al menu</button></a>
     </div>
     <script>
-        setInterval(function() {
+        setInterval(function () {
             var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function() {
+            xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
                     jsonData = JSON.parse(xhttp.responseText);
                     leaderboard(jsonData);

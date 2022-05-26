@@ -12,10 +12,12 @@ class Game
 {
 public:
     Game(Device *device);
+    ~Game();
     virtual void loop() = 0;
     virtual void start() = 0;
     virtual void initalize() = 0;
     virtual void end() = 0;
+    virtual void servePointsEndpoint(AsyncWebServerRequest *request) = 0;
 
 protected:
     virtual void onLightOn() = 0;

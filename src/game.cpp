@@ -3,7 +3,7 @@
 Game::Game(Device *device)
 {
     this->device = device;
-    this->device->socket()->on(WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
+    this->device->socket()->on(DSM_GAME, WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
                                {
         switch (message->code)
         {
@@ -16,6 +16,11 @@ Game::Game(Device *device)
         default:
             break;
         }; });
+}
+
+Game::~Game()
+{
+    this->device->socket()->clearGameHandlers();
 }
 
 void Game::incrementPlayerPoints(uint8_t playerID, int increment)

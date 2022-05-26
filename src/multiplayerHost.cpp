@@ -6,9 +6,9 @@ MultiplayerHost::MultiplayerHost(Device *device) : Game(device)
     this->_playerID = 1;
     this->_canStart = true;
     this->_nextRestartTime = millis() + 5000; // Due secondo e incomincia il gioco
-    this->device->socket()->on(WSHE_SOCKET_DISCONNECTED, [&](WSH_Event event, uint8_t from)
+    this->device->socket()->on(DSM_GAME, WSHE_SOCKET_DISCONNECTED, [&](WSH_Event event, uint8_t from)
                                { this->_deletePlayer(from); });
-    this->device->socket()->on(WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
+    this->device->socket()->on(DSM_GAME, WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
                                {
                                    Serial.printf("Message from: %i\ncode: %i\n\n", from,message->code);
         switch (message->code)
@@ -30,28 +30,25 @@ MultiplayerHost::MultiplayerHost(Device *device) : Game(device)
         default:
             break;
         }; });
-    this->device->webServer()->on("/", HTTP_ANY, [](AsyncWebServerRequest *request)
-                                  { request->send(SPIFFS, "/index.html"); });
-    this->device->webServer()->on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request)
-                                  { request->send(SPIFFS, "/style.css", "text/css"); });
-    this->device->webServer()->on("/functions.js", HTTP_GET, [](AsyncWebServerRequest *request)
-                                  { request->send(SPIFFS, "/functions.js", "text/js"); });
-    this->device->webServer()->on("/points", HTTP_GET, [&](AsyncWebServerRequest *request)
-                                  { 
-              AsyncJsonResponse* response = new AsyncJsonResponse();
-              const JsonObject& jsonData = response->getRoot();
-              int index = 0;
-              for (auto player = this->_playerDevice.begin(); player != this->_playerDevice.end(); player++)
-              {
-                if(player->second != 255){
-                    jsonData["players"][index]["id"] = player->first;
-                    jsonData["players"][index]["points"] = this->getPlayerPoints(player->first);
-                    jsonData["players"][index]["time"] = this->_playerButtonPressDelay[player->first];
-                    index++;
-                }  
-              }
-              response->setLength();
-              request->send(response); });
+}
+
+void MultiplayerHost::servePointsEndpoint(AsyncWebServerRequest *request)
+{
+    AsyncJsonResponse *response = new AsyncJsonResponse();
+    const JsonObject &jsonData = response->getRoot();
+    int index = 0;
+    for (auto player = this->_playerDevice.begin(); player != this->_playerDevice.end(); player++)
+    {
+        if (player->second != 255)
+        {
+            jsonData["players"][index]["id"] = player->first;
+            jsonData["players"][index]["points"] = this->getPlayerPoints(player->first);
+            jsonData["players"][index]["time"] = this->_playerButtonPressDelay[player->first];
+            index++;
+        }
+    }
+    response->setLength();
+    request->send(response);
 }
 
 void MultiplayerHost::loop()

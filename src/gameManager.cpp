@@ -9,7 +9,7 @@ GameManager::GameManager()
         this->_initGame(0);
         this->_initServerEndpoints();
     }
-    this->_device->socket()->on(WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
+    this->_device->socket()->on(DSM_CORE, WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
                                 {
         switch (message->code)
         {
@@ -32,11 +32,11 @@ GameManager::GameManager()
         default:
             break;
         }; });
-    this->_device->socket()->on(WSHE_WIFI_DISCONNECTED, [&](WSH_Event event)
+    this->_device->socket()->on(DSM_CORE, WSHE_WIFI_DISCONNECTED, [&](WSH_Event event)
                                 { this->_initGame(this->_gameID); });
     if (this->_device->isHost())
     {
-        this->_device->socket()->on(WSHE_SOCKET_CONNECTED, [&](WSH_Event event, uint8_t from)
+        this->_device->socket()->on(DSM_CORE, WSHE_SOCKET_CONNECTED, [&](WSH_Event event, uint8_t from)
                                     { this->_sendChangeGame(from, this->_gameID); });
     }
 }
@@ -139,6 +139,16 @@ void GameManager::_sendChangeGame(uint8_t deviceID, uint8_t newGameID)
 
 void GameManager::_initServerEndpoints()
 {
+    this->_device->webServer()->on("/", HTTP_ANY, [](AsyncWebServerRequest *request)
+                                   { request->send(SPIFFS, "/index.html"); });
+    this->_device->webServer()->on("/multiplayer.html", HTTP_ANY, [](AsyncWebServerRequest *request)
+                                   { request->send(SPIFFS, "/multiplayer.html"); });
+    this->_device->webServer()->on("/singleplayer.html", HTTP_ANY, [](AsyncWebServerRequest *request)
+                                   { request->send(SPIFFS, "/singleplayer.html"); });
+    this->_device->webServer()->on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request)
+                                   { request->send(SPIFFS, "/style.css", "text/css"); });
+    this->_device->webServer()->on("/functions.js", HTTP_GET, [](AsyncWebServerRequest *request)
+                                   { request->send(SPIFFS, "/functions.js", "text/js"); });
     this->_device->webServer()->on("/pause", HTTP_GET, [&](AsyncWebServerRequest *request)
                                    { 
                 if(request->hasParam("pause")){
@@ -173,4 +183,6 @@ void GameManager::_initServerEndpoints()
                     response->setLength();
                     request->send(response);
                 } });
+    this->_device->webServer()->on("/points", HTTP_GET, [&](AsyncWebServerRequest *request)
+                                   { this->_game->servePointsEndpoint(request); });
 }
