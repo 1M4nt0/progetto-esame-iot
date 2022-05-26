@@ -2,31 +2,24 @@
 <html>
 
 <head>
-    <link href="style.css" rel="stylesheet" type="text/css">
+    <link href="./style.css" rel="stylesheet" type="text/css">
+    <script src="functions.js"></script>
+    <script type="text/javascript">
+        setGamemode(0);
+    </script>
 </head>
 
 <body>
-
-
-    <div class="leaderboard">
-        <h1>
-            <svg class="ico-cup">
-                <use xlink:href="#cup"></use>
-            </svg> Classifica
-        </h1>
-        <div id="thead">
-            <p>Nome:</p>
-            <p>Tempo:</p>
-            <p>Vittorie:</p>
+    <form>
+        <h1 id="title-menu">Benvenuto</h1>
+        <div>
+            <p>Scegli la modalità di gioco:</p>
+            <div class="bottoniModalità">
+                <a href="./singleplayer.html" id="single" class="btn btn-primary btn-lg active" role="button">Singleplayer</a>
+                <a href="./multiplayer.html" id="multi" class="btn btn-default btn-lg active" role="button">Multiplayer</a>
+            </div>
         </div>
-        <table id="leaderboard">
-            <tbody></tbody>
-        </table>
-    </div>
-
-
-    <script src="functions.js">
-    </script>
+    </form>
 </body>
 
 </html>

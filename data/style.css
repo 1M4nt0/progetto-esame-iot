@@ -1,3 +1,8 @@
+@font-face {
+    font-family: ChakraPetch;
+    src: url('ChakraPetch-Regular.ttf');
+}
+
 body {
     min-height: 450px;
     height: 100vh;
@@ -17,12 +22,16 @@ body {
     background: linear-gradient(to bottom, #3a404d, #181c26);
     border-radius: 10px;
     box-shadow: 0 7px 30px rgba(62, 9, 11, .3);
+    /*font-family: 'Chakra Petch', sans-serif;*/
+    /*font-family: ChakraPetch;*/
+    font-family: monospace;
 }
 
 .leaderboard h1 {
-    font-size: 18px;
     color: #e1e1e1;
-    padding: 12px 13px 18px;
+    padding: 20px 13px 15px;
+    font-size: xx-large;
+    text-align: center;
 }
 
 .leaderboard h1 svg {
@@ -40,32 +49,36 @@ body {
 
 .leaderboard table {
     counter-reset: leaderboard;
+    height: 40%;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
 }
 
-.leaderboard table tr {
+.leaderboard tbody tr {
     position: relative;
     z-index: 1;
-    font-size: 14px;
     counter-increment: leaderboard;
     padding: 18px 10px 18px 50px;
     cursor: pointer;
     backface-visibility: hidden;
     transform: translateZ(0) scale(1, 1);
+    font-size: larger;
 }
 
-.leaderboard table tr::before {
+.leaderboard tbody tr::before {
     content: counter(leaderboard);
     position: absolute;
     z-index: 2;
-    top: 15px;
+    top: 35%;
     left: 15px;
-    width: 20px;
-    height: 20px;
-    line-height: 20px;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
     color: #c24448;
     background: #fff;
     border-radius: 20px;
     text-align: center;
+    vertical-align: middle;
 }
 
 .leaderboard table tr td {
@@ -73,11 +86,15 @@ body {
     z-index: 2;
     top: 0;
     left: 0;
-    height: 100%;
     padding: 18px 10px 18px 50px;
     margin: 0;
     background: none;
     color: #fff;
+    vertical-align: middle;
+}
+
+.leaderboard table thead tr td {
+    font-size: x-large;
 }
 
 .leaderboard table tr td::before,
@@ -101,14 +118,12 @@ body {
 }
 
 .leaderboard table tr::after {
-    content: '';
     position: absolute;
     z-index: 1;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: #fa6855;
     box-shadow: 0 3px 0 rgba(0, 0, 0, .08);
     transition: all 0.3s ease-in-out;
     opacity: 0;
@@ -130,14 +145,33 @@ body {
     transition: all 0.35s ease-in-out;
 }
 
-#thead {
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: space-around;
-}
-
 #leaderboard {
     width: 100%;
+}
+
+.menubutton {
+    display: flex;
+    justify-content: center;
+    text-decoration: none;
+    background: none;
+}
+
+.points {
+    padding-left: 9.5%;
+}
+
+.Wins {
+    margin-right: 70px;
+}
+
+#pauseButton {
+    display: inline-flex;
+}
+
+.divSopra {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
 }
 
 @media only screen and (max-width: 1000px) {
@@ -183,6 +217,161 @@ body {
     }
 }
 
-.points {
-    padding-left: 9.5%;
+@media (max-width:1000px) {
+    .leaderboard {
+        width: 95%;
+        height: 95%;
+    }
+    .leaderboard table {
+        height: fit-content;
+    }
+    .leaderboard h1 {
+        padding: 8%;
+        margin-bottom: 0px;
+    }
+    thead {
+        height: 120px;
+        font-size: 25px;
+    }
+    .leaderboard tbody tr {
+        height: 200px;
+    }
+    .leaderboard table thead tr td {
+        font-size: 30px;
+    }
+    .leaderboard table tr td {
+        font-size: 21px;
+    }
+}
+
+
+/* BOOTSTRAP */
+
+table {
+    border-collapse: collapse;
+}
+
+tbody,
+td,
+tfoot,
+th,
+thead,
+tr {
+    border-color: inherit;
+    border-style: solid;
+    border-width: 0;
+}
+
+.table-dark {
+    color: #fff !important;
+    border-color: #373b3e !important;
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+    vertical-align: top;
+    border-color: #dee2e6;
+}
+
+tbody,
+td,
+tfoot,
+th,
+thead,
+tr {
+    border-color: inherit;
+    border-style: solid;
+    border-width: 0;
+}
+
+.table>:not(:first-child) {
+    border-top: 2px solid currentColor;
+}
+
+.table>:not(caption)>*>* {
+    padding: 0.5rem 0.5rem;
+    background-color: #212529;
+    border-bottom-width: 1px;
+    box-shadow: inset 0 0 0 9999px var(transparent);
+}
+
+
+/*menu*/
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: radial-gradient(ellipse farthest-corner at center top, #f39264 0%, #f2606f 100%);
+    display: flex;
+    font-family: 'Poppins', sans-serif;
+    height: 100vh;
+    align-items: center;
+    justify-content: center;
+}
+
+form {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: rgba(74, 79, 97, 0.25) 0px 13px 27px -5px, rgba(74, 79, 97, 0.3) 0px 8px 16px -8px;
+    padding: 20px 35px 35px 35px;
+    text-align: center;
+    width: 500px;
+}
+
+form h1 {
+    font-weight: 600;
+    letter-spacing: 0;
+    margin: 25px 0 0 0;
+}
+
+form p {
+    color: #a4a9b6;
+    font-size: 18px;
+    margin: 2px 0 44px 0;
+}
+
+form ::placeholder {
+    color: #a4a9b6;
+    font-size: 15px;
+    opacity: 1;
+}
+
+a {
+    background: #4c70ff;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    padding: 18px 10px;
+    width: 100%;
+    margin-left: 5px;
+    text-decoration: none;
+}
+
+.bottoniModalità {
+    display: flex;
+    justify-content: space-around;
+}
+
+#single {
+    margin-right: 10px;
+}
+
+#multi {
+    margin-left: 10px;
+}
+
+
+/* ---------------- */
+
+#title-menu {
+    color: #333;
 }

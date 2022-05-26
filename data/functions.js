@@ -24,15 +24,35 @@ function leaderboard(jsonData) {
     tbody.innerHTML = tbodyHtml;
 }
 
-setInterval(function() {
+async function changePause() {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            jsonData = JSON.parse(xhttp.responseText);
-            console.log(jsonData);
-            leaderboard(jsonData);
+            pause = JSON.parse(xhttp.responseText)["pause"];
+            console.log(pause);
+            setPause(!pause);
         }
     };
-    xhttp.open("GET", "/points", true);
+    xhttp.open("GET", "/pause", true);
     xhttp.send();
-}, 1000);
+}
+
+function setPause(pause) {
+    var xhttp = new XMLHttpRequest();
+    var url = "/pause?pause=" + (pause ? "1" : "0");
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {}
+    };
+    xhttp.open("GET", url, true);
+    xhttp.send();
+}
+
+function setGamemode(gamemode) {
+    var xhttp = new XMLHttpRequest();
+    var url = "/gamemode?id=" + gamemode;
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {}
+    };
+    xhttp.open("GET", url, true);
+    xhttp.send();
+}

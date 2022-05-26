@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link href="./style.css" rel="stylesheet" type="text/css">
+    <script src="functions.js"></script>
+    <script type="text/javascript">
+        setGamemode(2);
+    </script>
+</head>
+
+<body>
+    <div class="leaderboard">
+
+        <div class="divSopra">
+            <h1 class="Header">
+                Classifica:</h1>
+            <button type="button" class="btn btn-secondary" id="pauseButton" onclick="changePause()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-pause-circle-fill" viewBox="0 0 16 16" style="margin-right: 6px; margin-top:20%;">
+                    <path
+                        d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.25 5C5.56 5 5 5.56 5 6.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C7.5 5.56 6.94 5 6.25 5zm3.5 0c-.69 0-1.25.56-1.25 1.25v3.5a1.25 1.25 0 1 0 2.5 0v-3.5C11 5.56 10.44 5 9.75 5z" />
+                </svg>
+                <p>Pausa</p>
+            </button>
+        </div>
+        <table class="table table-dark table-hover" id="leaderboard">
+            <thead>
+                <tr>
+                    <td>#</td>
+                    <td>Nome:</td>
+                    <td>Tempo:</td>
+                    <td>Vittorie:</td>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <a class="menubutton" href="/" role="button"><button type="button" class="btn btn-secondary"
+                style="padding: 10px;">Torna al menu</button></a>
+    </div>
+</body>
+
+</html>
