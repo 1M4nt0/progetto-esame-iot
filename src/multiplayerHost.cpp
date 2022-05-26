@@ -10,7 +10,7 @@ MultiplayerHost::MultiplayerHost(Device *device) : Game(device)
                                { this->_deletePlayer(from); });
     this->device->socket()->on(DSM_GAME, WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
                                {
-                                   Serial.printf("Message from: %i\ncode: %i\n\n", from,message->code);
+                                   //Serial.printf("Message from: %i\ncode: %i\n\n", from,message->code);
         switch (message->code)
         {
         case C_TIME:
@@ -139,16 +139,17 @@ void MultiplayerHost::_addPlayer(uint8_t deviceID)
     {
         if (_playerDevice[id] == deviceID)
         {
+            this->device->socket()->sendMessage(deviceID, C_PLAYER_ID, &id, sizeof(uint8_t));
             break;
         }
         if (_playerDevice[id] == 255)
         {
             _playerDevice[id] = deviceID;
             this->device->socket()->sendMessage(deviceID, C_PLAYER_ID, &id, sizeof(uint8_t));
-            Serial.printf("Connected device %i with playerID %i\n", deviceID, id);
             break;
         }
     }
+    Serial.printf("Connected device %i with playerID %i\n", deviceID, this->_findPlayerIDbyDeviceID(deviceID));
 }
 
 void MultiplayerHost::_deletePlayer(uint8_t deviceID)

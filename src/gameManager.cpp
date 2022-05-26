@@ -18,7 +18,7 @@ GameManager::GameManager()
             if (!this->_device->isHost())
             {
                 bool newPause = message->payload[0];
-                this->_setPause(pause);
+                this->_setPause(newPause);
             }
             break;
         }
@@ -50,23 +50,17 @@ GameManager::~GameManager()
 void GameManager::_initGame(uint8_t gameID)
 {
     drawToScreen("Avvio gioco...");
+    this->_gameID = gameID;
     if (this->_game != nullptr)
     {
         delete this->_game;
     }
-
     if (gameID == 0)
     {
-        if (this->_device->isHost())
-        {
-            this->_game = new MultiplayerHost(this->_device);
-        }
-        else
-        {
-            this->_game = new MultiplayerClient(this->_device);
-        }
+        this->_game = new MainMenu(this->_device);
+        drawTwoToScreen("Sceglio il", "gioco...");
     }
-    else
+    else if (gameID == 1)
     {
         if (this->_device->isHost())
         {
@@ -75,27 +69,43 @@ void GameManager::_initGame(uint8_t gameID)
         else
         {
             this->_game = new MultiplayerClient(this->_device);
+            this->_sendIsReadyToHost();
         }
     }
-    this->_gameID = gameID;
-    this->_setPause(false);
-    if (!this->_device->isHost())
+    else if (gameID == 2)
     {
-        this->_sendIsReadyToHost();
+        if (this->_device->isHost())
+        {
+            this->_game = new MultiplayerHost(this->_device);
+        }
+        else
+        {
+            this->_game = new MultiplayerClient(this->_device);
+            this->_sendIsReadyToHost();
+        }
     }
+    this->_setPause(true);
 }
 
 void GameManager::_setPause(bool isPaused)
 {
-    this->_game->end();
+    this->_device->setLightOn(false);
     if (this->_device->isHost())
     {
         this->_sendIsPaused(isPaused);
     }
     this->_isPaused = isPaused;
+    Serial.println(this->_isPaused);
     if (this->_isPaused)
     {
-        drawTwoToScreen("Gioco " + String(this->_gameID), "in pausa...");
+        if (this->_gameID == 1)
+        {
+            drawTwoToScreen("Multiplayer", "in pausa...");
+        }
+        else if (this->_gameID == 2)
+        {
+            drawTwoToScreen("Singleplayer", "in pausa...");
+        }
     }
     else
     {
@@ -134,6 +144,7 @@ void GameManager::_sendChangeGame(uint8_t newGameID)
 
 void GameManager::_sendChangeGame(uint8_t deviceID, uint8_t newGameID)
 {
+    Serial.printf("Change game  device %i, gamemode %i\n", deviceID, newGameID);
     this->_device->socket()->sendMessage(deviceID, C_NEW_GAMEMODE, &newGameID, sizeof(uint8_t));
 }
 

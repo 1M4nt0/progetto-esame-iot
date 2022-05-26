@@ -2,6 +2,7 @@
 #include <device.h>
 #include <multiplayerHost.h>
 #include <multiplayerClient.h>
+#include <mainMenu.h>
 
 class GameManager
 {

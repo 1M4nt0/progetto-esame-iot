@@ -4,14 +4,13 @@ MultiplayerClient::MultiplayerClient(Device *device) : Game(device)
 {
     this->device->socket()->on(DSM_GAME, WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
                                {
-                                   Serial.printf("Message from: %i\ncode: %i\n\n", from,message->code);
+                                   //Serial.printf("Message from: %i\ncode: %i\n\n", from,message->code);
         switch (message->code)
         {
         case C_PLAYER_ID:
         {
             uint8_t playerID = message->payload[0];
             this->_setPlayerID(playerID);
-            drawDashboard(this->_playerID, this->getPlayerPoints(this->_playerID));
             break;
         }
         case C_WINNER:
