@@ -22,6 +22,10 @@ private:
     void _sendChangeGame(uint8_t newGameID);
     void _sendChangeGame(uint8_t deviceID, uint8_t newGameID);
     void _sendIsReadyToHost();
+    void _handlePauseEndpointRequest(AsyncWebServerRequest *request);
+    void _handleGamemodeEndpointRequest(AsyncWebServerRequest *request);
+    void _handlePointsEndpointRequest(AsyncWebServerRequest *request);
+    void _handleResetPointsEndpointRequest(AsyncWebServerRequest *request);
 
 public:
     GameManager();

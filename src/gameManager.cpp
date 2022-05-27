@@ -153,58 +153,76 @@ void GameManager::_sendChangeGame(uint8_t newGameID)
 
 void GameManager::_sendChangeGame(uint8_t deviceID, uint8_t newGameID)
 {
-    Serial.printf("Change game  device %i, gamemode %i\n", deviceID, newGameID);
     this->_device->socket()->sendMessage(deviceID, C_NEW_GAMEMODE, &newGameID, sizeof(uint8_t));
 }
 
 void GameManager::_initServerEndpoints()
 {
-    this->_device->webServer()->on("/", HTTP_ANY, [](AsyncWebServerRequest *request)
-                                   { request->send(SPIFFS, "/index.html"); });
-    this->_device->webServer()->on("/multiplayer.html", HTTP_ANY, [](AsyncWebServerRequest *request)
-                                   { request->send(SPIFFS, "/multiplayer.html"); });
-    this->_device->webServer()->on("/singleplayer.html", HTTP_ANY, [](AsyncWebServerRequest *request)
-                                   { request->send(SPIFFS, "/singleplayer.html"); });
-    this->_device->webServer()->on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request)
-                                   { request->send(SPIFFS, "/style.css", "text/css"); });
-    this->_device->webServer()->on("/functions.js", HTTP_GET, [](AsyncWebServerRequest *request)
-                                   { request->send(SPIFFS, "/functions.js", "text/js"); });
-    this->_device->webServer()->on("/pause", HTTP_GET, [&](AsyncWebServerRequest *request)
-                                   { 
-                if(request->hasParam("pause")){
-                bool pause = request->getParam("pause")->value().toInt();
-                if(pause != this->_isPaused){
-                    request->send(200, "text", "OK!");
-                    this->_setPause(pause);
-                }else{
-                    request->send(200, "text", "NOT OK!");
-                }}else{
-                    AsyncJsonResponse* response = new AsyncJsonResponse();
-                    const JsonObject& jsonData = response->getRoot();
-                    jsonData["pause"] = this->_isPaused;
-                    response->setLength();
-                    request->send(response);
-                } });
-    this->_device->webServer()->on("/gamemode", HTTP_GET, [&](AsyncWebServerRequest *request)
-                                   { 
-                if(request->hasParam("id")){
-                int newGameID = request->getParam("id")->value().toInt();
-                if(newGameID != this->_gameID){
-                    request->send(200, "text", "OK!");
-                    this->_initGame(newGameID); 
-                    this->_sendChangeGame(newGameID);                
-                }else{
-                    request->send(403, "text", "NOT OK!");
-                }}else{
-                    AsyncJsonResponse* response = new AsyncJsonResponse();
-                    const JsonObject& jsonData = response->getRoot();
-                    jsonData["gamemode"] = this->_gameID;
-                    response->setLength();
-                    request->send(response);
-                } });
-    this->_device->webServer()->on("/points", HTTP_GET, [&](AsyncWebServerRequest *request)
-                                   { this->_game->servePointsEndpoint(request); });
-    this->_device->webServer()->on("/reset", HTTP_GET, [&](AsyncWebServerRequest *request)
-                                   { this->_game->resetPoints();
-                                    request->send(200, "text", "OK!"); });
+    this->_device->webServer()->serveStatic("/", SPIFFS, "/www/").setDefaultFile("index.html");
+    this->_device->webServer()->on("/pause", HTTP_ANY, std::bind(&GameManager::_handlePauseEndpointRequest, this, std::placeholders::_1));
+    this->_device->webServer()->on("/gamemode", HTTP_ANY, std::bind(&GameManager::_handleGamemodeEndpointRequest, this, std::placeholders::_1));
+    this->_device->webServer()->on("/points", HTTP_ANY, std::bind(&GameManager::_handlePointsEndpointRequest, this, std::placeholders::_1));
+    this->_device->webServer()->on("/reset", HTTP_ANY, std::bind(&GameManager::_handleResetPointsEndpointRequest, this, std::placeholders::_1));
+}
+
+void GameManager::_handlePauseEndpointRequest(AsyncWebServerRequest *request)
+{
+    if (request->hasParam("pause"))
+    {
+        bool pause = request->getParam("pause")->value().toInt();
+        if (pause != this->_isPaused)
+        {
+            request->send(200, "text", "OK!");
+            this->_setPause(pause);
+        }
+        else
+        {
+            request->send(200, "text", "NOT OK!");
+        }
+    }
+    else
+    {
+        AsyncJsonResponse *response = new AsyncJsonResponse();
+        const JsonObject &jsonData = response->getRoot();
+        jsonData["pause"] = this->_isPaused;
+        response->setLength();
+        request->send(response);
+    }
+}
+
+void GameManager::_handleGamemodeEndpointRequest(AsyncWebServerRequest *request)
+{
+    if (request->hasParam("id"))
+    {
+        int newGameID = request->getParam("id")->value().toInt();
+        if (newGameID != this->_gameID)
+        {
+            request->send(200, "text", "OK!");
+            this->_initGame(newGameID);
+            this->_sendChangeGame(newGameID);
+        }
+        else
+        {
+            request->send(403, "text", "NOT OK!");
+        }
+    }
+    else
+    {
+        AsyncJsonResponse *response = new AsyncJsonResponse();
+        const JsonObject &jsonData = response->getRoot();
+        jsonData["gamemode"] = this->_gameID;
+        response->setLength();
+        request->send(response);
+    }
+}
+
+void GameManager::_handlePointsEndpointRequest(AsyncWebServerRequest *request)
+{
+    this->_game->servePointsEndpoint(request);
+}
+
+void GameManager::_handleResetPointsEndpointRequest(AsyncWebServerRequest *request)
+{
+    this->_game->resetPoints();
+    request->send(200, "text", "OK!");
 }
