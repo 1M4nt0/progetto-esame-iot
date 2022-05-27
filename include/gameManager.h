@@ -2,6 +2,8 @@
 #include <device.h>
 #include <multiplayerHost.h>
 #include <multiplayerClient.h>
+#include <singleplayerHost.h>
+#include <singleplayerClient.h>
 #include <mainMenu.h>
 
 class GameManager

@@ -1,0 +1,157 @@
+#include <singleplayerHost.h>
+
+SingleplayerHost::SingleplayerHost(Device *device) : Game(device)
+{
+    this->_canStart = true;
+    this->_nextRestartTime = millis() + 5000; // Due secondo e incomincia il gioco
+    this->device->socket()->on(DSM_GAME, WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
+                               {
+                                   //Serial.printf("Message from: %i\ncode: %i\n\n", from,message->code);
+        switch (message->code)
+        {
+        case C_TIME:
+        {
+            unsigned short time;
+            memcpy(&time, message->payload, sizeof(short));
+            this->_playerButtonPressDelays[this->_currentPlayer][this->_numberOfAttempts] = time;
+            break;
+        }
+        case C_READY_TO_PLAY:
+        {
+            break;
+        }  
+        default:
+            break;
+        }; });
+}
+
+void SingleplayerHost::initalize()
+{
+    this->device->display()->drawToScreen("Giocatore " + String(this->_currentPlayer));
+    Winner.meanTime = SHRT_MAX;
+    Winner.id = 0;
+    this->_initPlayerButtonDelaysVector(this->_currentPlayer);
+    this->_numberOfAttempts = 0;
+}
+
+void SingleplayerHost::start()
+{
+    this->_deviceWithLightON = random(0, this->device->socket()->getConnectedDevicesIDVector().size() + 1);
+    unsigned int waitTime = millis() + random(3000, 6500);
+    while (millis() < waitTime)
+    {
+        delay(1);
+    };
+    (this->_deviceWithLightON == 0) ? this->device->setLightOn(true) : this->device->socket()->sendMessage(this->_deviceWithLightON, C_LIGHTS_ON);
+    this->_timeSinceLastDeviceLightOn = millis();
+    this->_canStart = false;
+};
+
+void SingleplayerHost::end()
+{
+    if (this->_deviceWithLightON == 0)
+    {
+        this->device->setLightOn(false);
+    }
+    else
+    {
+        this->device->socket()->sendMessage(this->_deviceWithLightON, C_LIGHTS_OFF);
+    }
+    this->_checkIfCurrentWinner(this->_currentPlayer);
+    short timeMean = this->_arrayTimeMean(this->_playerButtonPressDelays[this->_currentPlayer], MAX_NUMBER_OF_ATTEMPTS);
+    this->device->display()->drawTwoToScreen("Punteggio: ", String(MAX_LIGHT_ON_TIME - timeMean));
+    delay(2000);
+    if (this->_currentPlayer == this->_numberOfPlayers)
+    {
+        this->_currentPlayer = 1;
+        this->incrementPlayerPoints(Winner.id, 1);
+        this->device->display()->drawTwoToScreen("Vincitore: ", "Giocatore " + String(Winner.id));
+        delay(2000);
+    }
+    else
+    {
+        this->_currentPlayer += 1;
+    }
+    this->_canStart = true;
+    this->_nextRestartTime = millis() + 2000;
+}
+
+void SingleplayerHost::loop()
+{
+    if (this->_canStart && millis() > this->_nextRestartTime)
+    {
+        this->initalize();
+        this->start();
+    }
+    if (this->_numberOfAttempts == MAX_NUMBER_OF_ATTEMPTS && this->_canStart == false)
+    {
+        this->end();
+    }
+    else
+    {
+        if (millis() > this->_timeSinceLastDeviceLightOn + MAX_LIGHT_ON_TIME)
+        {
+            (this->_deviceWithLightON == 0) ? this->device->setLightOn(false) : this->device->socket()->sendMessage(this->_deviceWithLightON, C_LIGHTS_OFF);
+            this->_deviceWithLightON = random(0, this->device->socket()->getConnectedDevicesIDVector().size() + 1);
+            Serial.printf("ID vector size: %i, Dev ON %i\n", this->device->socket()->getConnectedDevicesIDVector().size(), this->_deviceWithLightON);
+            this->_numberOfAttempts += 1;
+            unsigned int waitTime = millis() + random(500, 1000);
+            while (millis() < waitTime)
+            {
+                delay(1);
+            };
+            if (this->_deviceWithLightON == 0)
+            {
+                this->device->setLightOn(true);
+                this->_lightOnTime = millis();
+            }
+            else
+            {
+                this->device->socket()->sendMessage(this->_deviceWithLightON, C_LIGHTS_ON);
+            }
+            this->_timeSinceLastDeviceLightOn = millis();
+        }
+    }
+    if (this->device->isLightOn())
+    {
+        if (digitalRead(BUTTON_PIN) == LOW)
+        {
+            onButtonPressed();
+        }
+    }
+};
+
+short SingleplayerHost::_arrayTimeMean(short *timeArray, int length)
+{
+    short currentPlayerMean = 0;
+    for (int i = 0; i < length; i++)
+    {
+        currentPlayerMean += timeArray[i];
+    }
+    return currentPlayerMean / length;
+}
+
+void SingleplayerHost::_initPlayerButtonDelaysVector(uint8_t playerID)
+{
+    for (int i = 0; i < MAX_NUMBER_OF_ATTEMPTS; i++)
+    {
+        this->_playerButtonPressDelays[playerID][i] = MAX_LIGHT_ON_TIME;
+    }
+}
+
+void SingleplayerHost::_checkIfCurrentWinner(uint8_t playerID)
+{
+    short currentPlayerMean = this->_arrayTimeMean(this->_playerButtonPressDelays[playerID], MAX_NUMBER_OF_ATTEMPTS);
+    if (Winner.meanTime > currentPlayerMean)
+    {
+        Winner.id = playerID;
+        Winner.meanTime = currentPlayerMean;
+    }
+}
+
+void SingleplayerHost::onButtonPressed()
+{
+    this->device->setLightOn(false);
+    long buttonPressDelay = millis() - this->_lightOnTime;
+    this->_playerButtonPressDelays[this->_currentPlayer][this->_numberOfAttempts] = buttonPressDelay;
+};

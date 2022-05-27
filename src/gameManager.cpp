@@ -59,7 +59,7 @@ void GameManager::_initGame(uint8_t gameID)
     if (gameID == 0)
     {
         this->_game = new MainMenu(this->_device);
-        this->_device->display()->drawTwoToScreen("Sceglio il", "gioco...");
+        this->_device->display()->drawTwoToScreen("Scegli il", "gioco...");
     }
     else if (gameID == 1)
     {
@@ -77,11 +77,11 @@ void GameManager::_initGame(uint8_t gameID)
     {
         if (this->_device->isHost())
         {
-            this->_game = new MultiplayerHost(this->_device);
+            this->_game = new SingleplayerHost(this->_device);
         }
         else
         {
-            this->_game = new MultiplayerClient(this->_device);
+            this->_game = new SingleplayerClient(this->_device);
             this->_sendIsReadyToHost();
         }
     }
