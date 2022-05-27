@@ -2,7 +2,7 @@
 
 SingleplayerHost::SingleplayerHost(Device *device) : Game(device)
 {
-    this->_canStart = true;
+    this->_canRestart = true;
     this->_nextRestartTime = millis() + 5000; // Due secondo e incomincia il gioco
     this->device->socket()->on(DSM_GAME, WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
                                {
@@ -36,27 +36,14 @@ void SingleplayerHost::initalize()
 
 void SingleplayerHost::start()
 {
-    this->_deviceWithLightON = random(0, this->device->socket()->getConnectedDevicesIDVector().size() + 1);
-    unsigned int waitTime = millis() + random(3000, 6500);
-    while (millis() < waitTime)
-    {
-        delay(1);
-    };
-    (this->_deviceWithLightON == 0) ? this->device->setLightOn(true) : this->device->socket()->sendMessage(this->_deviceWithLightON, C_LIGHTS_ON);
+    this->_startAttempt();
     this->_timeSinceLastDeviceLightOn = millis();
-    this->_canStart = false;
+    this->_canRestart = false;
 };
 
 void SingleplayerHost::end()
 {
-    if (this->_deviceWithLightON == 0)
-    {
-        this->device->setLightOn(false);
-    }
-    else
-    {
-        this->device->socket()->sendMessage(this->_deviceWithLightON, C_LIGHTS_OFF);
-    }
+    this->_endAttempt();
     this->_checkIfCurrentWinner(this->_currentPlayer);
     short timeMean = this->_arrayTimeMean(this->_playerButtonPressDelays[this->_currentPlayer], MAX_NUMBER_OF_ATTEMPTS);
     this->device->display()->drawTwoToScreen("Punteggio: ", String(MAX_LIGHT_ON_TIME - timeMean));
@@ -72,44 +59,54 @@ void SingleplayerHost::end()
     {
         this->_currentPlayer += 1;
     }
-    this->_canStart = true;
+    this->_canRestart = true;
     this->_nextRestartTime = millis() + 2000;
+}
+
+void SingleplayerHost::_endAttempt()
+{
+    (this->_deviceWithLightON == 0) ? this->device->setLightOn(false) : this->device->socket()->sendMessage(this->_deviceWithLightON, C_LIGHTS_OFF);
+    this->_nextAttemptDelay = random(500, 4000);
+    this->_byAttempting = false;
+}
+
+void SingleplayerHost::_startAttempt()
+{
+    this->_deviceWithLightON = random(0, this->device->socket()->getConnectedDevicesIDVector().size() + 1);
+    this->_numberOfAttempts += 1;
+    if (this->_deviceWithLightON == 0)
+    {
+        this->device->setLightOn(true);
+        this->_lightOnTime = millis();
+    }
+    else
+    {
+        this->device->socket()->sendMessage(this->_deviceWithLightON, C_LIGHTS_ON);
+    }
+    this->_timeSinceLastDeviceLightOn = millis();
+    this->_byAttempting = true;
 }
 
 void SingleplayerHost::loop()
 {
-    if (this->_canStart && millis() > this->_nextRestartTime)
+    if (this->_canRestart && millis() > this->_nextRestartTime)
     {
         this->initalize();
         this->start();
     }
-    if (this->_numberOfAttempts == MAX_NUMBER_OF_ATTEMPTS && this->_canStart == false)
+    if (this->_numberOfAttempts == MAX_NUMBER_OF_ATTEMPTS && this->_canRestart == false && millis() > this->_timeSinceLastDeviceLightOn + MAX_LIGHT_ON_TIME)
     {
         this->end();
     }
     else
     {
-        if (millis() > this->_timeSinceLastDeviceLightOn + MAX_LIGHT_ON_TIME)
+        if (millis() > this->_timeSinceLastDeviceLightOn + MAX_LIGHT_ON_TIME && this->_byAttempting)
         {
-            (this->_deviceWithLightON == 0) ? this->device->setLightOn(false) : this->device->socket()->sendMessage(this->_deviceWithLightON, C_LIGHTS_OFF);
-            this->_deviceWithLightON = random(0, this->device->socket()->getConnectedDevicesIDVector().size() + 1);
-            Serial.printf("ID vector size: %i, Dev ON %i\n", this->device->socket()->getConnectedDevicesIDVector().size(), this->_deviceWithLightON);
-            this->_numberOfAttempts += 1;
-            unsigned int waitTime = millis() + random(500, 1000);
-            while (millis() < waitTime)
-            {
-                delay(1);
-            };
-            if (this->_deviceWithLightON == 0)
-            {
-                this->device->setLightOn(true);
-                this->_lightOnTime = millis();
-            }
-            else
-            {
-                this->device->socket()->sendMessage(this->_deviceWithLightON, C_LIGHTS_ON);
-            }
-            this->_timeSinceLastDeviceLightOn = millis();
+            this->_endAttempt();
+        }
+        if (millis() > this->_timeSinceLastDeviceLightOn + MAX_LIGHT_ON_TIME + this->_nextAttemptDelay && !this->_byAttempting)
+        {
+            this->_startAttempt();
         }
     }
     if (this->device->isLightOn())

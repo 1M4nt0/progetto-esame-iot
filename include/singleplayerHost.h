@@ -36,8 +36,12 @@ private:
         unsigned short meanTime = SHRT_MAX;
     } Winner;
     void _checkIfCurrentWinner(uint8_t playerID);
-    bool _canStart;
+    bool _canRestart;
     unsigned long _nextRestartTime;
     unsigned long _lightOnTime;
     short _arrayTimeMean(short *timeArray, int length);
+    void _startAttempt();
+    void _endAttempt();
+    bool _byAttempting;
+    unsigned long _nextAttemptDelay;
 };
