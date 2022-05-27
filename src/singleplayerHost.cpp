@@ -152,3 +152,19 @@ void SingleplayerHost::onButtonPressed()
     long buttonPressDelay = millis() - this->_lightOnTime;
     this->_playerButtonPressDelays[this->_currentPlayer][this->_numberOfAttempts] = buttonPressDelay;
 };
+
+void SingleplayerHost::servePointsEndpoint(AsyncWebServerRequest *request)
+{
+    AsyncJsonResponse *response = new AsyncJsonResponse();
+    const JsonObject &jsonData = response->getRoot();
+    int index = 0;
+    for (int i = 1; i <= this->_numberOfPlayers; i++)
+    {
+        jsonData["players"][index]["id"] = i;
+        jsonData["players"][index]["points"] = this->getPlayerPoints(i);
+        jsonData["players"][index]["time"] = MAX_LIGHT_ON_TIME - this->_arrayTimeMean(this->_playerButtonPressDelays[i], MAX_NUMBER_OF_ATTEMPTS);
+        index++;
+    }
+    response->setLength();
+    request->send(response);
+}

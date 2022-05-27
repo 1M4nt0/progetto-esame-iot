@@ -12,7 +12,7 @@ public:
     virtual void start() override;
     virtual void initalize() override;
     virtual void end() override;
-    virtual void servePointsEndpoint(AsyncWebServerRequest *request) override{};
+    virtual void servePointsEndpoint(AsyncWebServerRequest *request) override;
 
 protected:
     virtual void onLightOn() override{};

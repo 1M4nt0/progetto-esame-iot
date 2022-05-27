@@ -29,7 +29,7 @@
                 <tr>
                     <td>#</td>
                     <td>Nome:</td>
-                    <td>Tempo:</td>
+                    <td>Punteggio:</td>
                     <td>Vittorie:</td>
                 </tr>
             </thead>
@@ -39,6 +39,19 @@
         <a class="menubutton" href="/" role="button"><button type="button" class="btn btn-secondary"
                 style="padding: 10px;">Torna al menu</button></a>
     </div>
+    <script>
+        setInterval(function() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    jsonData = JSON.parse(xhttp.responseText);
+                    leaderboard(jsonData);
+                }
+            };
+            xhttp.open("GET", "/points", true);
+            xhttp.send();
+        }, 1000);
+    </script>
 </body>
 
 </html>
