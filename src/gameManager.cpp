@@ -206,5 +206,5 @@ void GameManager::_initServerEndpoints()
                                    { this->_game->servePointsEndpoint(request); });
     this->_device->webServer()->on("/reset", HTTP_GET, [&](AsyncWebServerRequest *request)
                                    { this->_game->resetPoints();
-                                     request->send(200, "text", "OK!"); });
+                                    request->send(200, "text", "OK!"); });
 }

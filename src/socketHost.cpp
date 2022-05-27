@@ -5,6 +5,7 @@ SocketHost::SocketHost()
     SPIFFS.begin(true);
     this->_server = new AsyncWebServer(80);
     this->_server->begin();
+    this->_server->reset();
     this->_initSocket();
 }
 
