@@ -50,7 +50,7 @@ GameManager::~GameManager()
 
 void GameManager::_initGame(uint8_t gameID)
 {
-    drawToScreen("Avvio gioco...");
+    this->_device->display()->drawToScreen("Avvio gioco...");
     this->_gameID = gameID;
     if (this->_game != nullptr)
     {
@@ -59,7 +59,7 @@ void GameManager::_initGame(uint8_t gameID)
     if (gameID == 0)
     {
         this->_game = new MainMenu(this->_device);
-        drawTwoToScreen("Sceglio il", "gioco...");
+        this->_device->display()->drawTwoToScreen("Sceglio il", "gioco...");
     }
     else if (gameID == 1)
     {
@@ -100,11 +100,11 @@ void GameManager::_setPause(bool isPaused)
     {
         if (this->_gameID == 1)
         {
-            drawTwoToScreen("Multiplayer", "in pausa...");
+            this->_device->display()->drawTwoToScreen("Multiplayer", "in pausa...");
         }
         else if (this->_gameID == 2)
         {
-            drawTwoToScreen("Singleplayer", "in pausa...");
+            this->_device->display()->drawTwoToScreen("Singleplayer", "in pausa...");
         }
     }
     else
@@ -191,7 +191,6 @@ void GameManager::_initServerEndpoints()
                 int newGameID = request->getParam("id")->value().toInt();
                 if(newGameID != this->_gameID){
                     request->send(200, "text", "OK!");
-                    drawToScreen("Cambio gioco...");
                     this->_initGame(newGameID); 
                     this->_sendChangeGame(newGameID);                
                 }else{

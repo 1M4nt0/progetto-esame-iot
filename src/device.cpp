@@ -2,8 +2,8 @@
 
 Device::Device()
 {
-    initDisplay();
-    drawToScreen("Avvio...");
+    this->_deviceDisplay = new DeviceDisplay();
+    this->display()->drawToScreen("Avvio...");
     pinMode(BUTTON_PIN, INPUT);
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, LOW);
@@ -16,6 +16,12 @@ Device::Device()
     }
     this->socket()->on(DSM_CORE, WSHE_WIFI_DISCONNECTED, [&](WSH_Event event)
                        { this->setLightOn(false); });
+}
+
+Device::~Device()
+{
+    delete this->_deviceDisplay;
+    delete this->_deviceSocket;
 }
 
 void Device::connectToWifi()
@@ -87,6 +93,11 @@ void Device::loop()
     {
         this->_buttonPressed = false;
     }
+}
+
+DeviceDisplay *Device::display()
+{
+    return this->_deviceDisplay;
 }
 
 DeviceSocket *Device::socket()

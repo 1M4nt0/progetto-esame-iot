@@ -67,7 +67,7 @@ void MultiplayerClient::onLightOn()
     if (this->_playerID > 0)
     {
         this->_lightOnTime = millis();
-        drawDashboard(this->_playerID, this->getPlayerPoints(this->_playerID));
+        this->device->display()->drawDashboard(this->_playerID, this->getPlayerPoints(this->_playerID));
     }
 }
 
@@ -75,10 +75,10 @@ void MultiplayerClient::_displayResults(bool isWinner)
 {
     if (isWinner)
     {
-        drawToScreen("Hai vinto!");
+        this->device->display()->drawToScreen("Hai vinto!");
     }
     else
     {
-        drawToScreen("Hai perso!");
+        this->device->display()->drawToScreen("Hai perso!");
     }
 }
