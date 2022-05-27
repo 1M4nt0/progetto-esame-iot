@@ -8,6 +8,7 @@ class SingleplayerHost : public Game
 {
 public:
     SingleplayerHost(Device *device);
+    ~SingleplayerHost();
     virtual void loop() override;
     virtual void start() override;
     virtual void initalize() override;
@@ -44,4 +45,6 @@ private:
     void _endAttempt();
     bool _byAttempting;
     unsigned long _nextAttemptDelay;
+    AsyncWebHandler _playersNumberHandler;
+    void _handlePlayersNumberEndpointRequest(AsyncWebServerRequest *request);
 };

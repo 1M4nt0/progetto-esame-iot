@@ -16,13 +16,15 @@ SingleplayerHost::SingleplayerHost(Device *device) : Game(device)
             this->_playerButtonPressDelays[this->_currentPlayer][this->_numberOfAttempts] = time;
             break;
         }
-        case C_READY_TO_PLAY:
-        {
-            break;
-        }  
         default:
             break;
         }; });
+    this->_playersNumberHandler = this->device->webServer()->on("/players", HTTP_ANY, std::bind(&SingleplayerHost::_handlePlayersNumberEndpointRequest, this, std::placeholders::_1));
+}
+
+SingleplayerHost::~SingleplayerHost()
+{
+    this->device->webServer()->removeHandler(&this->_playersNumberHandler);
 }
 
 void SingleplayerHost::initalize()
@@ -167,4 +169,30 @@ void SingleplayerHost::servePointsEndpoint(AsyncWebServerRequest *request)
     }
     response->setLength();
     request->send(response);
+}
+
+void SingleplayerHost::_handlePlayersNumberEndpointRequest(AsyncWebServerRequest *request)
+{
+    if (request->hasParam("number"))
+    {
+        String action = request->getParam("number")->value();
+        if (action == "increase")
+        {
+            request->send(200, "text", "OK!");
+            this->_numberOfPlayers++;
+        }
+        else if (action == "decrease")
+        {
+            request->send(200, "text", "OK!");
+            this->_numberOfPlayers--;
+        }
+    }
+    else
+    {
+        AsyncJsonResponse *response = new AsyncJsonResponse();
+        const JsonObject &jsonData = response->getRoot();
+        jsonData["players"] = this->_numberOfPlayers;
+        response->setLength();
+        request->send(response);
+    }
 }
