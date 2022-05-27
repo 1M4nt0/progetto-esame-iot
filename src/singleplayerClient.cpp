@@ -1,8 +1,8 @@
 #include <singleplayerClient.h>
 
-SingleplayerClient::SingleplayerClient(Device *device) : Game(device)
+void SingleplayerClient::initalize()
 {
-    this->device->display()->drawToScreen("...");
+    this->device->display()->drawToScreen("In gioco...");
 }
 
 void SingleplayerClient::loop()

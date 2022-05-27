@@ -7,10 +7,10 @@
 class SingleplayerClient : public Game
 {
 public:
-    SingleplayerClient(Device *device);
+    SingleplayerClient(Device *device) : Game(device){};
     virtual void loop() override;
     virtual void start() override{};
-    virtual void initalize() override{};
+    virtual void initalize() override;
     virtual void end() override{};
     virtual void servePointsEndpoint(AsyncWebServerRequest *request) override{};
 
