@@ -18,6 +18,7 @@ public:
     virtual void initalize() = 0;
     virtual void end() = 0;
     virtual void servePointsEndpoint(AsyncWebServerRequest *request) = 0;
+    void resetPoints();
 
 protected:
     virtual void onLightOn() = 0;

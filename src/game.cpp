@@ -37,3 +37,8 @@ void Game::sendWinner(uint8_t winnerID)
 {
     this->device->socket()->sendMessageAll(C_WINNER, &winnerID, sizeof(winnerID));
 }
+
+void Game::resetPoints()
+{
+    this->_playerPoints.clear();
+}
