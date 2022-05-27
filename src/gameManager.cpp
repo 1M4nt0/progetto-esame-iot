@@ -37,7 +37,8 @@ GameManager::GameManager()
     if (this->_device->isHost())
     {
         this->_device->socket()->on(DSM_CORE, WSHE_SOCKET_CONNECTED, [&](WSH_Event event, uint8_t from)
-                                    { this->_sendChangeGame(from, this->_gameID); });
+                                    { this->_sendChangeGame(from, this->_gameID); 
+                                      this->_sendIsPaused(from, this->_isPaused); });
     }
 }
 
@@ -95,7 +96,6 @@ void GameManager::_setPause(bool isPaused)
         this->_sendIsPaused(isPaused);
     }
     this->_isPaused = isPaused;
-    Serial.println(this->_isPaused);
     if (this->_isPaused)
     {
         if (this->_gameID == 1)
@@ -129,6 +129,15 @@ void GameManager::_sendIsPaused(bool isPaused)
     if (this->_device->isHost())
     {
         this->_device->socket()->sendMessageAll(C_PAUSE, &u_paused, sizeof(bool));
+    }
+}
+
+void GameManager::_sendIsPaused(uint8_t deviceID, bool isPaused)
+{
+    uint8_t u_paused = (uint8_t)isPaused;
+    if (this->_device->isHost())
+    {
+        this->_device->socket()->sendMessage(deviceID, C_PAUSE, &u_paused, sizeof(bool));
     }
 }
 

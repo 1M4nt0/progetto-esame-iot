@@ -16,6 +16,7 @@ private:
     void _initServerEndpoints();
     void _sendPause(bool isPaused);
     void _sendIsPaused(bool isPaused);
+    void _sendIsPaused(uint8_t deviceID, bool isPaused);
     void _sendChangeGame(uint8_t newGameID);
     void _sendChangeGame(uint8_t deviceID, uint8_t newGameID);
     void _sendIsReadyToHost();
