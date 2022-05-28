@@ -30,6 +30,7 @@ SingleplayerHost::~SingleplayerHost()
 void SingleplayerHost::initalize()
 {
     this->device->display()->drawToScreen("Giocatore " + String(this->_currentPlayer));
+    this->device->socket()->sendMessageAll(C_LIGHTS_OFF);
     Winner.meanTime = SHRT_MAX;
     Winner.id = 0;
     this->_initPlayerButtonDelaysVector(this->_currentPlayer);
@@ -39,7 +40,6 @@ void SingleplayerHost::initalize()
 void SingleplayerHost::start()
 {
     this->_startAttempt();
-    this->_timeSinceLastDeviceLightOn = millis();
     this->_canRestart = false;
 };
 
@@ -62,7 +62,7 @@ void SingleplayerHost::end()
         this->_currentPlayer += 1;
     }
     this->_canRestart = true;
-    this->_nextRestartTime = millis() + 2000;
+    this->_nextRestartTime = millis() + 4000;
 }
 
 void SingleplayerHost::_endAttempt()

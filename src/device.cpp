@@ -26,7 +26,7 @@ Device::~Device()
 
 void Device::connectToWifi()
 {
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD, 7);
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     int status = WiFi.status();
     if (this->_deviceSocket != nullptr)
     {
@@ -34,13 +34,13 @@ void Device::connectToWifi()
     }
     while (status != WL_CONNECTED && status != WL_NO_SSID_AVAIL)
     {
-        delay(2000);
+        delay(500);
         status = WiFi.status();
     }
     if (status == WL_NO_SSID_AVAIL)
     {
         WiFi.mode(WIFI_MODE_AP);
-        WiFi.softAP(WIFI_SSID, WIFI_PASSWORD, 7, 0);
+        WiFi.softAP(WIFI_SSID, WIFI_PASSWORD);
         this->_isHost = true;
         this->_deviceSocket = new SocketHost();
     }
