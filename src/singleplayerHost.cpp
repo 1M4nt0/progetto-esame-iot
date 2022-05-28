@@ -2,7 +2,8 @@
 
 SingleplayerHost::SingleplayerHost(Device *device) : Game(device)
 {
-    this->_canRestart = true;
+    this->_canRestart = false;
+    this->_byAttempting = false;
     this->_nextRestartTime = millis() + 5000; // Due secondo e incomincia il gioco
     this->device->socket()->on(DSM_GAME, WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
                                {
@@ -100,7 +101,7 @@ void SingleplayerHost::loop()
     {
         this->end();
     }
-    else
+    else if (!this->_canRestart)
     {
         if (millis() > this->_timeSinceLastDeviceLightOn + MAX_LIGHT_ON_TIME && this->_byAttempting)
         {
