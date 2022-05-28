@@ -19,7 +19,7 @@ SingleplayerHost::SingleplayerHost(Device *device) : Game(device)
         default:
             break;
         }; });
-    this->_playersNumberHandler = this->device->webServer()->on("/players", HTTP_ANY, std::bind(&SingleplayerHost::_handlePlayersNumberEndpointRequest, this, std::placeholders::_1));
+    this->_playersNumberHandler = this->device->webServer()->on("/players", HTTP_GET, std::bind(&SingleplayerHost::_handlePlayersNumberEndpointRequest, this, std::placeholders::_1));
 }
 
 SingleplayerHost::~SingleplayerHost()

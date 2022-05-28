@@ -159,10 +159,10 @@ void GameManager::_sendChangeGame(uint8_t deviceID, uint8_t newGameID)
 void GameManager::_initServerEndpoints()
 {
     this->_device->webServer()->serveStatic("/", SPIFFS, "/www/").setDefaultFile("index.html");
-    this->_device->webServer()->on("/pause", HTTP_ANY, std::bind(&GameManager::_handlePauseEndpointRequest, this, std::placeholders::_1));
-    this->_device->webServer()->on("/gamemode", HTTP_ANY, std::bind(&GameManager::_handleGamemodeEndpointRequest, this, std::placeholders::_1));
-    this->_device->webServer()->on("/points", HTTP_ANY, std::bind(&GameManager::_handlePointsEndpointRequest, this, std::placeholders::_1));
-    this->_device->webServer()->on("/reset", HTTP_ANY, std::bind(&GameManager::_handleResetPointsEndpointRequest, this, std::placeholders::_1));
+    this->_device->webServer()->on("/pause", HTTP_GET, std::bind(&GameManager::_handlePauseEndpointRequest, this, std::placeholders::_1));
+    this->_device->webServer()->on("/gamemode", HTTP_GET, std::bind(&GameManager::_handleGamemodeEndpointRequest, this, std::placeholders::_1));
+    this->_device->webServer()->on("/points", HTTP_GET, std::bind(&GameManager::_handlePointsEndpointRequest, this, std::placeholders::_1));
+    this->_device->webServer()->on("/reset", HTTP_GET, std::bind(&GameManager::_handleResetPointsEndpointRequest, this, std::placeholders::_1));
 }
 
 void GameManager::_handlePauseEndpointRequest(AsyncWebServerRequest *request)

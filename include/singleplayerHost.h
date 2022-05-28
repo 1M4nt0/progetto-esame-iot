@@ -3,6 +3,7 @@
 
 #define MAX_NUMBER_OF_ATTEMPTS 5
 #define MAX_LIGHT_ON_TIME 3000
+#define MAX_NUMBER_OF_PLAYERS 8
 
 class SingleplayerHost : public Game
 {
