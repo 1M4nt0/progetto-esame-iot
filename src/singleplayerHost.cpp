@@ -70,13 +70,13 @@ void SingleplayerHost::_endAttempt()
 {
     (this->_deviceWithLightON == 0) ? this->device->setLightOn(false) : this->device->socket()->sendMessage(this->_deviceWithLightON, C_LIGHTS_OFF);
     this->_nextAttemptDelay = random(500, 4000);
+    this->_numberOfAttempts += 1;
     this->_byAttempting = false;
 }
 
 void SingleplayerHost::_startAttempt()
 {
     this->_deviceWithLightON = random(0, this->device->socket()->getConnectedDevicesIDVector().size() + 1);
-    this->_numberOfAttempts += 1;
     if (this->_deviceWithLightON == 0)
     {
         this->device->setLightOn(true);

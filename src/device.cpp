@@ -56,12 +56,18 @@ void Device::initOTA()
     ArduinoOTA
         .onStart([&]()
                  { this->setLightOn(false); })
-        .onEnd([]()
-               { Serial.println("Aggiornamento completato!"); })
-        .onProgress([](unsigned int progress, unsigned int total)
-                    { Serial.printf("Progresso: %i%", progress / (total / 100)); })
-        .onError([](ota_error_t error)
-                 { Serial.println("Errore di aggiornamento"); });
+        .onEnd([&]()
+               { Serial.println("Aggiornamento completato!"); 
+                 this->display()->drawToScreen("Aggiornato! :)");
+                 delay(2000);
+                 this->display()->drawToScreen("Riavvio...");
+                 delay(2000); })
+        .onProgress([&](unsigned int progress, unsigned int total)
+                    { Serial.printf("Progresso: %i%", progress / (total / 100)); 
+                      this->display()->drawToScreen("Progresso: " + String(progress / (total / 100)) + "%"); })
+        .onError([&](ota_error_t error)
+                 { Serial.println("Errore di aggiornamento"); 
+                   this->display()->drawToScreen("Errore :("); });
     ArduinoOTA.begin();
 }
 

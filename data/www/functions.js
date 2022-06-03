@@ -76,7 +76,7 @@ function increasePlayers() {
             console.log(xhr.response);
         }
     } catch (err) {
-        alert("Request failed");
+        //alert("Request failed");
     }
 }
 
@@ -92,7 +92,7 @@ function decreasePlayers() {
             console.log(xhr.response);
         }
     } catch (err) {
-        alert("Request failed");
+        //alert("Request failed");
     }
 }
 
