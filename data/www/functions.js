@@ -5,12 +5,12 @@ function leaderboard(jsonData, isMulti) {
 
     players = jsonData["players"];
     if (isMulti) {
-        players.sort(function(a, b) {
-            return Number(b.time) - Number(a.time);
+        players.sort(function (a, b) {
+            return Number(a.time) - Number(b.time);
         });
     } else {
-        players.sort(function(a, b) {
-            return Number(a.time) - Number(b.time);
+        players.sort(function (a, b) {
+            return Number(b.time) - Number(a.time);
         });
     }
 
@@ -36,7 +36,7 @@ function leaderboard(jsonData, isMulti) {
 
 async function changePause() {
     var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
+    xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             pause = JSON.parse(xhttp.responseText)["pause"];
             console.log(pause);
@@ -50,7 +50,7 @@ async function changePause() {
 function setPause(pause) {
     var xhttp = new XMLHttpRequest();
     var url = "/pause?pause=" + (pause ? "1" : "0");
-    xhttp.onreadystatechange = function() {
+    xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             if (pause) {
                 document.getElementById("pauseBtn").style.display = "none";
@@ -68,8 +68,9 @@ function setPause(pause) {
 function setGamemode(gamemode) {
     var xhttp = new XMLHttpRequest();
     var url = "/gamemode?id=" + gamemode;
-    xhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {}
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+        }
     };
     xhttp.open("GET", url, true);
     xhttp.send();
@@ -110,8 +111,9 @@ function decreasePlayers() {
 function resetPoints() {
     var xhttp = new XMLHttpRequest();
     var url = "/reset";
-    xhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {}
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+        }
     };
     xhttp.open("GET", url, true);
     xhttp.send();

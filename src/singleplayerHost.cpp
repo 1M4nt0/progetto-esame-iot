@@ -15,7 +15,7 @@ SingleplayerHost::SingleplayerHost(Device *device) : Game(device)
         {
             unsigned short time;
             memcpy(&time, message->payload, sizeof(short));
-            this->_playerButtonPressDelays[this->_currentPlayer][this->_numberOfAttempts] = time;
+            this->_playerButtonPressDelays[this->_currentPlayer][this->_numberOfAttempts] = MAX_LIGHT_ON_TIME - time;
             break;
         }
         default:
@@ -48,8 +48,10 @@ void SingleplayerHost::end()
 {
     this->_endAttempt();
     this->_checkIfCurrentWinner(this->_currentPlayer);
-    short timeMean = this->_arrayTimeMean(this->_playerButtonPressDelays[this->_currentPlayer], MAX_NUMBER_OF_ATTEMPTS);
-    this->device->display()->drawTwoToScreen("Punteggio: ", String(timeMean));
+    const int rescaleIndex = MAX_LIGHT_ON_TIME / 1000;
+    short totalPoints = this->_arrayTimeMean(this->_playerButtonPressDelays[this->_currentPlayer], MAX_NUMBER_OF_ATTEMPTS) / rescaleIndex;
+    this->_playerButtonPressDelays[this->_currentPlayer][this->_numberOfAttempts];
+    this->device->display()->drawTwoToScreen("Punteggio: ", String(totalPoints));
     delay(2000);
     if (this->_currentPlayer == this->_numberOfPlayers)
     {
@@ -165,19 +167,20 @@ void SingleplayerHost::onButtonPressed()
 {
     this->device->setLightOn(false);
     long buttonPressDelay = millis() - this->_lightOnTime;
-    this->_playerButtonPressDelays[this->_currentPlayer][this->_numberOfAttempts] = buttonPressDelay;
+    this->_playerButtonPressDelays[this->_currentPlayer][this->_numberOfAttempts] = MAX_LIGHT_ON_TIME - buttonPressDelay;
 };
 
 void SingleplayerHost::servePointsEndpoint(AsyncWebServerRequest *request)
 {
     AsyncJsonResponse *response = new AsyncJsonResponse();
     const JsonObject &jsonData = response->getRoot();
+    const int rescaleIndex = MAX_LIGHT_ON_TIME / 1000;
     int index = 0;
     for (int i = 1; i <= this->_numberOfPlayers; i++)
     {
         jsonData["players"][index]["id"] = i;
         jsonData["players"][index]["points"] = this->getPlayerPoints(i);
-        jsonData["players"][index]["time"] = this->_arrayTimeMean(this->_playerButtonPressDelays[i], MAX_NUMBER_OF_ATTEMPTS);
+        jsonData["players"][index]["time"] = this->_arrayTimeMean(this->_playerButtonPressDelays[i], MAX_NUMBER_OF_ATTEMPTS) / rescaleIndex;
         index++;
     }
     response->setLength();

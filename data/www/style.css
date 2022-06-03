@@ -162,6 +162,7 @@
      border: 4px white solid;
      border-radius: 20px;
      margin: 10px;
+     cursor: pointer;
  }
  
  .actionbuttons {

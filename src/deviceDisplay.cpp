@@ -31,7 +31,7 @@ void DeviceDisplay::drawTwoToScreen(String message1, String message2)
     this->_display->clear();
     this->_display->setTextAlignment(TEXT_ALIGN_CENTER);
     this->_display->drawString(this->_display->getWidth() / 2, this->_display->getHeight() / 4, message1);
-    this->_display->drawString(this->_display->getWidth() / 2, (this->_display->getHeight() / 4) * 3, message2);
+    this->_display->drawString(this->_display->getWidth() / 2, (this->_display->getHeight() / 4) * 3 - 5, message2);
     this->_display->display();
 }
 
@@ -40,6 +40,6 @@ void DeviceDisplay::drawDashboard(int player, int points)
     this->_display->clear();
     this->_display->setTextAlignment(TEXT_ALIGN_CENTER);
     this->_display->drawString(this->_display->getWidth() / 2, this->_display->getHeight() / 4, "Giocatore " + String(player));
-    this->_display->drawString(this->_display->getWidth() / 2, (this->_display->getHeight() / 4) * 3, "Punti: " + String(points));
+    this->_display->drawString(this->_display->getWidth() / 2, (this->_display->getHeight() / 4) * 3 - 5, "Punti: " + String(points));
     this->_display->display();
 }
