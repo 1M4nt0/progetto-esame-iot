@@ -4,6 +4,7 @@ SingleplayerHost::SingleplayerHost(Device *device) : Game(device)
 {
     this->_canRestart = false;
     this->_byAttempting = false;
+    this->_resetPlayersButtonDelaysVector();
     this->_nextRestartTime = millis() + 5000; // Due secondo e incomincia il gioco
     this->device->socket()->on(DSM_GAME, WSHM_BIN, [&](WSH_Message msgType, uint8_t from, SocketDataMessage *message)
                                {
@@ -34,7 +35,6 @@ void SingleplayerHost::initalize()
     this->device->socket()->sendMessageAll(C_LIGHTS_OFF);
     Winner.meanTime = SHRT_MAX;
     Winner.id = 0;
-    this->_initPlayerButtonDelaysVector(this->_currentPlayer);
     this->_numberOfAttempts = 0;
 }
 
@@ -57,6 +57,7 @@ void SingleplayerHost::end()
         this->incrementPlayerPoints(Winner.id, 1);
         this->device->display()->drawTwoToScreen("Vincitore: ", "Giocatore " + String(Winner.id));
         delay(2000);
+        this->_resetPlayersButtonDelaysVector();
     }
     else
     {
@@ -131,11 +132,22 @@ short SingleplayerHost::_arrayTimeMean(short *timeArray, int length)
     return currentPlayerMean / length;
 }
 
-void SingleplayerHost::_initPlayerButtonDelaysVector(uint8_t playerID)
+void SingleplayerHost::_resetPlayersButtonDelaysVector()
 {
-    for (int i = 0; i < MAX_NUMBER_OF_ATTEMPTS; i++)
+    for (int i = 1; i <= this->_numberOfPlayers; i++)
     {
-        this->_playerButtonPressDelays[playerID][i] = MAX_LIGHT_ON_TIME;
+        for (int j = 0; j < MAX_NUMBER_OF_ATTEMPTS; j++)
+        {
+            this->_playerButtonPressDelays[i][j] = 0;
+        }
+    }
+}
+
+void SingleplayerHost::_resetPlayersButtonDelaysVector(uint8_t playerID)
+{
+    for (int j = 0; j < MAX_NUMBER_OF_ATTEMPTS; j++)
+    {
+        this->_playerButtonPressDelays[playerID][j] = 0;
     }
 }
 
@@ -165,7 +177,7 @@ void SingleplayerHost::servePointsEndpoint(AsyncWebServerRequest *request)
     {
         jsonData["players"][index]["id"] = i;
         jsonData["players"][index]["points"] = this->getPlayerPoints(i);
-        jsonData["players"][index]["time"] = MAX_LIGHT_ON_TIME - this->_arrayTimeMean(this->_playerButtonPressDelays[i], MAX_NUMBER_OF_ATTEMPTS);
+        jsonData["players"][index]["time"] = this->_arrayTimeMean(this->_playerButtonPressDelays[i], MAX_NUMBER_OF_ATTEMPTS);
         index++;
     }
     response->setLength();
@@ -181,6 +193,7 @@ void SingleplayerHost::_handlePlayersNumberEndpointRequest(AsyncWebServerRequest
         {
             request->send(200, "text", "OK!");
             this->_numberOfPlayers++;
+            this->_resetPlayersButtonDelaysVector(this->_numberOfPlayers);
         }
         else if (action == "decrease")
         {

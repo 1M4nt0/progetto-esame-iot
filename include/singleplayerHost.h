@@ -31,7 +31,8 @@ private:
     uint8_t _currentPlayer = 1;
     uint8_t _numberOfPlayers = 1;
     std::map<uint8_t, short[MAX_NUMBER_OF_ATTEMPTS]> _playerButtonPressDelays;
-    void _initPlayerButtonDelaysVector(uint8_t playerID);
+    void _resetPlayersButtonDelaysVector();
+    void _resetPlayersButtonDelaysVector(uint8_t playerID);
     struct
     {
         uint8_t id = 0;
