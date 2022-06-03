@@ -1,12 +1,18 @@
-function leaderboard(jsonData) {
+function leaderboard(jsonData, isMulti) {
     var leaderboard = document.getElementById("points-table");
     var tbody = leaderboard.querySelector("tbody");
     var tbodyHtml = "";
 
     players = jsonData["players"];
-    players.sort(function(a, b) {
-        return Number(a.time) - Number(b.time);
-    });
+    if (isMulti) {
+        players.sort(function(a, b) {
+            return Number(b.time) - Number(a.time);
+        });
+    } else {
+        players.sort(function(a, b) {
+            return Number(a.time) - Number(b.time);
+        });
+    }
 
     index = 1;
     for (var player of players) {
@@ -46,8 +52,13 @@ function setPause(pause) {
     var url = "/pause?pause=" + (pause ? "1" : "0");
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            const sig = document.getElementById("signifier");
-            pause ? (sig.classList = "pause") : "play";
+            if (pause) {
+                document.getElementById("pauseBtn").style.display = "none";
+                document.getElementById("playBtn").style.display = "block";
+            } else {
+                document.getElementById("pauseBtn").style.display = "block";
+                document.getElementById("playBtn").style.display = "none";
+            }
         }
     };
     xhttp.open("GET", url, true);

@@ -237,43 +237,39 @@
      margin-left: 20px;
  }
  
+ #pauseBtn {
+     display: none;
+ }
+ 
  @media (max-width: 1280px) {
      .leaderboard-page h2 {
          font-size: 40px;
          height: 80%;
          margin-left: 40px;
      }
-
-    #actionButtonsContainer {
-        position: unset;
-    }
-    
-    #header {
-        justify-content: space-between;
-    }
-
-    #points-table td {
-        font-size: 36px;
-    }
-
-    #playerButtons  {
-        position: unset;
-    }
-
-    /* INDEX */
-
-    #welcome-screen h1 {
-        font-size: 150px;
-    }
-
-    #welcome-screen h2 {
-        font-size: 35px;
-    }
-
-    #welcome-screen a {
-        font-size: 1.8em;
-        width: 75%;
-        margin: auto;
-        margin-bottom: 15px;
-    }
+     #actionButtonsContainer {
+         position: unset;
+     }
+     #header {
+         justify-content: space-between;
+     }
+     #points-table td {
+         font-size: 36px;
+     }
+     #playerButtons {
+         position: unset;
+     }
+     /* INDEX */
+     #welcome-screen h1 {
+         font-size: 150px;
+     }
+     #welcome-screen h2 {
+         font-size: 35px;
+     }
+     #welcome-screen a {
+         font-size: 1.8em;
+         width: 75%;
+         margin: auto;
+         margin-bottom: 15px;
+     }
  }

@@ -24,8 +24,8 @@
             <h2>Gioco di gruppo</h2>
             <div id="actionButtonsContainer">
                 <button class="actionbuttons" id="pauseButton" onclick="changePause()">
-                    <img class="buttonIcon" src="./pause_iconj.svg" />
-                    <img class="buttonIcon" src="./play_icon.svg" style="display: none;" />
+                    <img id="pauseBtn" class="buttonIcon" src="./pause_iconj.svg" />
+                    <img id="playBtn" class="buttonIcon" src="./play_icon.svg" />
                 </button>
                 <button class="actionbuttons" id="resetButton" onclick="resetPoints()">
                     <img class="buttonIcon" src="./reset_undo.svg" />
@@ -51,7 +51,7 @@
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     jsonData = JSON.parse(xhttp.responseText);
-                    leaderboard(jsonData);
+                    leaderboard(jsonData, true);
                 }
             };
             xhttp.open("GET", "/points", true);

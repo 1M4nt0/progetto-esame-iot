@@ -40,8 +40,8 @@ void SingleplayerHost::initalize()
 
 void SingleplayerHost::start()
 {
-    this->_startAttempt();
     this->_canRestart = false;
+    this->_startAttempt();
 };
 
 void SingleplayerHost::end()
@@ -49,7 +49,7 @@ void SingleplayerHost::end()
     this->_endAttempt();
     this->_checkIfCurrentWinner(this->_currentPlayer);
     short timeMean = this->_arrayTimeMean(this->_playerButtonPressDelays[this->_currentPlayer], MAX_NUMBER_OF_ATTEMPTS);
-    this->device->display()->drawTwoToScreen("Punteggio: ", String(MAX_LIGHT_ON_TIME - timeMean));
+    this->device->display()->drawTwoToScreen("Punteggio: ", String(timeMean));
     delay(2000);
     if (this->_currentPlayer == this->_numberOfPlayers)
     {
