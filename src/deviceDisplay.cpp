@@ -22,7 +22,7 @@ void DeviceDisplay::drawToScreen(String message)
 {
     this->_display->clear();
     this->_display->setTextAlignment(TEXT_ALIGN_CENTER);
-    this->_display->drawString(this->_display->getWidth() / 2, this->_display->getHeight() / 2, message);
+    this->_display->drawString(this->_display->getWidth() / 2, this->_display->getHeight() / 3 + 5, message);
     this->_display->display();
 }
 
@@ -31,7 +31,17 @@ void DeviceDisplay::drawTwoToScreen(String message1, String message2)
     this->_display->clear();
     this->_display->setTextAlignment(TEXT_ALIGN_CENTER);
     this->_display->drawString(this->_display->getWidth() / 2, this->_display->getHeight() / 4, message1);
-    this->_display->drawString(this->_display->getWidth() / 2, (this->_display->getHeight() / 4) * 3 - 5, message2);
+    this->_display->drawString(this->_display->getWidth() / 2, (this->_display->getHeight() / 4) * 2 + 2, message2);
+    this->_display->display();
+}
+
+void DeviceDisplay::drawThreeToScreen(String message1, String message2, String message3)
+{
+    this->_display->clear();
+    this->_display->setTextAlignment(TEXT_ALIGN_CENTER);
+    this->_display->drawString(this->_display->getWidth() / 2, this->_display->getHeight() / 6 - 5, message1);
+    this->_display->drawString(this->_display->getWidth() / 2, (this->_display->getHeight() / 6) * 3 - 5, message2);
+    this->_display->drawString(this->_display->getWidth() / 2, (this->_display->getHeight() / 6) * 5 - 5, message3);
     this->_display->display();
 }
 

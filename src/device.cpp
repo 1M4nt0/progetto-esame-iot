@@ -3,7 +3,8 @@
 Device::Device()
 {
     this->_deviceDisplay = new DeviceDisplay();
-    this->display()->drawToScreen("Avvio...");
+    this->display()->drawThreeToScreen("Ver.", String(__DATE__), String(__TIME__));
+    delay(5000);
     pinMode(BUTTON_PIN, INPUT);
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, LOW);
@@ -91,6 +92,14 @@ void Device::loop()
 {
     ArduinoOTA.handle();
     this->_deviceSocket->loop();
+    if (!this->isHost() && WiFi.status() != WL_CONNECTED)
+    {
+        this->display()->drawTwoToScreen("Connessione", "persa...");
+        delay(random(1000, 6000));
+        this->display()->drawToScreen("Riavvio...");
+        delay(1000);
+        ESP.restart();
+    }
     if (digitalRead(BUTTON_PIN) == LOW)
     {
         this->_buttonPressed = true;
