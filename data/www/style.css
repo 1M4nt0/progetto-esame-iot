@@ -1,0 +1,276 @@
+ * {
+     margin: 0;
+     padding: 0;
+ }
+ 
+ html {
+     height: 100%;
+     display: flex;
+ }
+ 
+ h1,
+ h2,
+ h3,
+ a,
+ p,
+ td {
+     font-family: "Work Sans", sans-serif;
+ }
+ 
+ h1 {
+     text-align: center;
+     font-size: 100px;
+     color: white;
+     margin-bottom: 10px;
+ }
+ 
+ h2 {
+     text-align: center;
+     font-size: 22px;
+     font-weight: 100;
+     color: white;
+     margin-bottom: 50px;
+ }
+ 
+ body {
+     position: relative;
+     margin: auto;
+     background: #181620;
+     perspective: 500px;
+ }
+ 
+ main {
+     display: flex;
+     flex-direction: column;
+     transform: rotatex(10deg);
+     animation: rotateAngle 6s linear infinite;
+ }
+ 
+ #welcome-screen a {
+     display: block;
+     position: relative;
+     margin: 0.5em 0;
+     padding: .8em 2.2em;
+     cursor: pointer;
+     background: #FFFFFF;
+     border: none;
+     border-radius: .4em;
+     text-transform: uppercase;
+     font-size: 1.4em;
+     font-family: "Work Sans", sans-serif;
+     font-weight: 500;
+     letter-spacing: 0.04em;
+     mix-blend-mode: color-dodge;
+     perspective: 500px;
+     transform-style: preserve-3d;
+     text-align: center;
+     text-decoration: none;
+     color: black;
+ }
+ 
+ @keyframes rotateAngle {
+     0% {
+         transform: rotateY(0deg) rotateX(10deg);
+         animation-timing-function: cubic-bezier(0.61, 1, 0.88, 1);
+     }
+     25% {
+         transform: rotateY(20deg) rotateX(10deg);
+     }
+     50% {
+         transform: rotateY(0deg) rotateX(10deg);
+         animation-timing-function: cubic-bezier(0.61, 1, 0.88, 1);
+     }
+     75% {
+         transform: rotateY(-20deg) rotateX(10deg);
+     }
+     100% {
+         transform: rotateY(0deg) rotateX(10deg);
+     }
+ }
+ 
+ @keyframes translateWobble {
+     0% {
+         opacity: 0;
+         transform: translate3d( calc(var(--z) * 0px), calc(var(--z) * 0px), calc(var(--z) * 0px));
+     }
+     16% {
+         transform: translate3d( calc(var(--z) * 160px), calc(var(--z) * 160px), calc(var(--z) * 160px));
+     }
+     28% {
+         opacity: 1;
+         transform: translate3d( calc(var(--z) * 70px), calc(var(--z) * 70px), calc(var(--z) * 70px));
+     }
+     44% {
+         transform: translate3d( calc(var(--z) * 130px), calc(var(--z) * 130px), calc(var(--z) * 130px));
+     }
+     59% {
+         transform: translate3d( calc(var(--z) * 85px), calc(var(--z) * 85px), calc(var(--z) * 85px));
+     }
+     73% {
+         transform: translate3d( calc(var(--z) * 110px), calc(var(--z) * 110px), calc(var(--z) * 110px));
+     }
+     88% {
+         opacity: 1;
+         transform: translate3d( calc(var(--z) * 90px), calc(var(--z) * 90px), calc(var(--z) * 90px));
+     }
+     100% {
+         opacity: 1;
+         transform: translate3d( calc(var(--z) * 100px), calc(var(--z) * 100px), calc(var(--z) * 100px));
+     }
+ }
+ 
+ #top-header {
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     margin-bottom: 50px;
+ }
+ 
+ #menubutton {
+     position: absolute;
+     width: 100px;
+     height: 100px;
+     margin: 0;
+     padding: 0;
+     left: 0;
+ }
+ 
+ #header {
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     margin-bottom: 30px;
+     border: 3px white solid;
+     border-radius: 20px;
+     min-height: 160px;
+ }
+ 
+ .leaderboard-page {
+     width: 80%;
+ }
+ 
+ .leaderboard-page h2 {
+     font-size: 56px;
+     margin-bottom: 0;
+ }
+ 
+ button {
+     background-color: transparent;
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     border: 4px white solid;
+     border-radius: 20px;
+     margin: 10px;
+     cursor: pointer;
+ }
+ 
+ .actionbuttons {
+     position: relative;
+     height: 100px;
+     width: 100px;
+     box-sizing: border-box;
+     border: 4px white solid;
+ }
+ 
+ #actionButtonsContainer {
+     position: absolute;
+     right: 0;
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     margin: 0 30px;
+ }
+ 
+ #menubutton {
+     height: 120px;
+     width: 120px;
+ }
+ 
+ #menubutton button {
+     height: 100%;
+     width: 100%;
+ }
+ 
+ button img {
+     width: 70%;
+     height: 70%;
+     filter: invert(100%) sepia(0%) saturate(7500%) hue-rotate(334deg) brightness(104%) contrast(112%);
+ }
+ 
+ #points-table {
+     width: 100%;
+ }
+ 
+ #points-table td {
+     font-size: 26px;
+     color: white;
+     text-align: center;
+ }
+ 
+ #points-table tr {
+     height: 60px;
+ }
+ 
+ #points-table thead {
+     border-bottom: 2px #999 solid;
+ }
+ 
+ #playerButtons {
+     position: absolute;
+     left: 0;
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     flex-direction: column;
+ }
+ 
+ #playerButtons h3 {
+     color: white;
+     text-align: center;
+ }
+ 
+ #playerButtons div {
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     flex-direction: row;
+     margin-left: 20px;
+ }
+ 
+ #pauseBtn {
+     display: none;
+ }
+ 
+ @media (max-width: 1280px) {
+     .leaderboard-page h2 {
+         font-size: 40px;
+         height: 80%;
+         margin-left: 40px;
+     }
+     #actionButtonsContainer {
+         position: unset;
+     }
+     #header {
+         justify-content: space-between;
+     }
+     #points-table td {
+         font-size: 36px;
+     }
+     #playerButtons {
+         position: unset;
+     }
+     /* INDEX */
+     #welcome-screen h1 {
+         font-size: 150px;
+     }
+     #welcome-screen h2 {
+         font-size: 35px;
+     }
+     #welcome-screen a {
+         font-size: 1.8em;
+         width: 75%;
+         margin: auto;
+         margin-bottom: 15px;
+     }
+ }

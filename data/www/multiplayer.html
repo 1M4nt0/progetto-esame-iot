@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link href="./style.css" rel="stylesheet" type="text/css">
+    <script src="functions.js"></script>
+    <script type="text/javascript">
+        setGamemode(1);
+    </script>
+</head>
+
+<body class="leaderboard-page">
+    <div class="leaderboard">
+        <div id="top-header">
+            <a id="menubutton" href="./index.html">
+                <button>
+                    <img src="./home_icon.svg"></img>
+                </button>
+            </a>
+            <h1>Classifica</h1>
+        </div>
+
+        <div id="header">
+            <h2>Gioco di gruppo</h2>
+            <div id="actionButtonsContainer">
+                <button class="actionbuttons" id="pauseButton" onclick="changePause()">
+                    <img id="pauseBtn" class="buttonIcon" src="./pause_iconj.svg" />
+                    <img id="playBtn" class="buttonIcon" src="./play_icon.svg" />
+                </button>
+                <button class="actionbuttons" id="resetButton" onclick="resetPoints()">
+                    <img class="buttonIcon" src="./reset_undo.svg" />
+                </button>
+            </div>
+        </div>
+        <table id="points-table">
+            <thead>
+                <tr>
+                    <td>#</td>
+                    <td>NOME</td>
+                    <td>TEMPO</td>
+                    <td>VITTORIE</td>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <script>
+        setInterval(function() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    jsonData = JSON.parse(xhttp.responseText);
+                    leaderboard(jsonData, true);
+                }
+            };
+            xhttp.open("GET", "/points", true);
+            xhttp.send();
+        }, 1000);
+    </script>
+</body>
+
+</html>
